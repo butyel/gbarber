@@ -53,7 +53,7 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
       <Button
         variant="ghost"
         size="icon"
-        className="md:hidden fixed top-4 left-4 z-50"
+        className="md:hidden fixed top-4 left-4 z-50 bg-primary text-primary-foreground"
         onClick={() => setMobileOpen(true)}
       >
         <Menu className="h-6 w-6" />
@@ -109,7 +109,7 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
                   isActive
                     ? "bg-accent text-primary"
                     : "text-muted-foreground hover:bg-secondary hover:text-primary-foreground",
