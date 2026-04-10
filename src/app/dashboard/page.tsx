@@ -27,7 +27,7 @@ export default function DashboardPage() {
   const [recentAppointments, setRecentAppointments] = useState<Atendimento[]>([]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !db) return;
 
     const fetchData = async () => {
       try {
@@ -72,7 +72,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [user]);
+  }, [user, db]);
 
   return (
     <div className="min-h-screen">

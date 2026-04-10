@@ -42,9 +42,9 @@ export default function AtendimentosPage() {
   });
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !db) return;
     fetchData();
-  }, [user]);
+  }, [user, db]);
 
   const fetchData = async () => {
     try {

@@ -32,9 +32,9 @@ export default function ServicosPage() {
   });
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !db) return;
     fetchData();
-  }, [user]);
+  }, [user, db]);
 
   const fetchData = async () => {
     try {

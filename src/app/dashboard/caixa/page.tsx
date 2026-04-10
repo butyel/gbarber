@@ -26,9 +26,9 @@ export default function CaixaPage() {
   const [aberturaCaixa, setAberturaCaixa] = useState(0);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !db) return;
     fetchData();
-  }, [user]);
+  }, [user, db]);
 
   const fetchData = async () => {
     try {
