@@ -13,7 +13,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  Crown
+  Crown,
+  Calendar
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -21,6 +22,7 @@ import { useState } from "react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/agenda", label: "Agenda", icon: Calendar },
   { href: "/dashboard/servicos", label: "Serviços", icon: Scissors },
   { href: "/dashboard/atendimentos", label: "Atendimentos", icon: Scissors },
   { href: "/dashboard/barbeiros", label: "Barbeiros", icon: Users },

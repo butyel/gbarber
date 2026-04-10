@@ -50,6 +50,7 @@ export interface ProdutoVendido {
 export interface Atendimento {
   id: string;
   cliente: string;
+  telefone?: string;
   barbeiroId: string;
   barbeiroNome: string;
   servicoId: string;
@@ -57,6 +58,9 @@ export interface Atendimento {
   valor: number;
   produtoVendido?: ProdutoVendido;
   comissao: number;
+  data: string;
+  hora: string;
+  status: "agendado" | "em_atendimento" | "concluido" | "cancelado";
   createdAt: Date;
 }
 
