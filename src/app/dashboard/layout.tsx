@@ -3,17 +3,31 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
     }
   }, [user, loading, router]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebarCollapsed");
+    if (saved) {
+      setSidebarCollapsed(JSON.parse(saved));
+    }
+  }, []);
+
+  const toggleSidebar = () => {
+    const newState = !sidebarCollapsed;
+    setSidebarCollapsed(newState);
+    localStorage.setItem("sidebarCollapsed", JSON.stringify(newState));
+  };
 
   if (loading || !user) {
     return (
@@ -25,8 +39,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <main className="md:pl-64">
+      <Sidebar isCollapsed={sidebarCollapsed} onToggle={toggleSidebar} />
+      <main className={sidebarCollapsed ? "md:pl-16" : "md:pl-64"}>
         {children}
       </main>
     </div>

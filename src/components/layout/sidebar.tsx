@@ -16,7 +16,9 @@ import {
   Crown,
   Calendar,
   User,
-  ClipboardList
+  ClipboardList,
+  X,
+  ChevronLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -32,12 +34,13 @@ const navItems = [
   { href: "/dashboard/produtos", label: "Produtos", icon: Package },
   { href: "/dashboard/caixa", label: "Caixa", icon: Wallet },
   { href: "/dashboard/relatorios", label: "Relatórios", icon: BarChart3 },
+  { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: () => void }) {
   const pathname = usePathname();
   const { user, logout, isAdmin } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const adminItems = isAdmin ? [
     { href: "/dashboard/admin", label: "Admin", icon: Crown },
@@ -51,25 +54,46 @@ export function Sidebar() {
         variant="ghost"
         size="icon"
         className="md:hidden fixed top-4 left-4 z-50"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setMobileOpen(true)}
       >
         <Menu className="h-6 w-6" />
       </Button>
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen w-64 bg-primary text-primary-foreground flex flex-col transition-transform duration-200",
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          "fixed left-0 top-0 z-40 h-screen bg-primary text-primary-foreground flex flex-col transition-all duration-300",
+          isCollapsed ? "w-16" : "w-64",
+          mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        <div className="p-6 border-b border-secondary">
-          <h1 className="text-xl font-bold text-accent">GBarber</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {isAdmin ? "Painel Admin" : user?.nome || "Minha Barbearia"}
-          </p>
+        <div className="p-4 border-b border-secondary flex items-center justify-between">
+          {!isCollapsed && (
+            <div>
+              <h1 className="text-xl font-bold text-accent">GBarber</h1>
+              <p className="text-xs text-muted-foreground mt-1 truncate max-w-[150px]">
+                {isAdmin ? "Painel Admin" : user?.nome || "Minha Barbearia"}
+              </p>
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden md:flex text-muted-foreground hover:text-primary-foreground"
+            onClick={onToggle}
+          >
+            <ChevronLeft className={cn("h-5 w-5 transition-transform", isCollapsed && "rotate-180")} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setMobileOpen(false)}
+          >
+            <X className="h-5 w-5" />
+          </Button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
           {allItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -78,44 +102,41 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   isActive
                     ? "bg-accent text-primary"
-                    : "text-muted-foreground hover:bg-secondary hover:text-primary-foreground"
+                    : "text-muted-foreground hover:bg-secondary hover:text-primary-foreground",
+                  isCollapsed && "justify-center"
                 )}
-                onClick={() => setIsOpen(false)}
+                onClick={() => setMobileOpen(false)}
+                title={isCollapsed ? item.label : undefined}
               >
-                <Icon className="h-5 w-5" />
-                {item.label}
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {!isCollapsed && <span className="truncate">{item.label}</span>}
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t border-secondary space-y-2">
-          <Link
-            href="/dashboard/configuracoes"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-primary-foreground transition-colors"
-            onClick={() => setIsOpen(false)}
-          >
-            <Settings className="h-5 w-5" />
-            Configurações
-          </Link>
+        <div className="p-2 border-t border-secondary">
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:bg-destructive hover:text-destructive-foreground"
+            className={cn(
+              "w-full justify-start text-muted-foreground hover:bg-destructive hover:text-destructive-foreground",
+              isCollapsed && "justify-center px-2"
+            )}
             onClick={logout}
           >
-            <LogOut className="h-5 w-5 mr-3" />
-            Sair
+            <LogOut className="h-5 w-5" />
+            {!isCollapsed && <span className="ml-3">Sair</span>}
           </Button>
         </div>
       </aside>
 
-      {isOpen && (
+      {mobileOpen && (
         <div
           className="md:hidden fixed inset-0 bg-black/50 z-30"
-          onClick={() => setIsOpen(false)}
+          onClick={() => setMobileOpen(false)}
         />
       )}
     </>
