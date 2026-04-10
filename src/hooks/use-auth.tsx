@@ -36,83 +36,98 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setLoading(true);
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setUser({
-            id: firebaseUser.uid,
-            email: firebaseUser.email || "",
-            nome: userData.nome || "Usuário",
-            createdAt: userData.createdAt?.toDate() || new Date(),
-            plano: userData.plano || "free",
-          });
-
-          // Check if admin
-          setIsAdmin(firebaseUser.email === "admin@gbarber.com");
-
-          const barbeariaDoc = await getDoc(
-            doc(db, "barbearias", firebaseUser.uid)
-          );
-          if (barbeariaDoc.exists()) {
-            const barbData = barbeariaDoc.data();
-            setBarbearia({
+        try {
+          const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUser({
               id: firebaseUser.uid,
-              nome: barbData.nome || "Minha Barbearia",
-              plano: barbData.plano || "free",
-              createdAt: barbData.createdAt?.toDate() || new Date(),
+              email: firebaseUser.email || "",
+              nome: userData.nome || "Usuário",
+              createdAt: userData.createdAt?.toDate() || new Date(),
+              plano: userData.plano || "free",
             });
+
+            // Check if admin
+            setIsAdmin(firebaseUser.email === "admin@gbarber.com");
+
+            const barbeariaDoc = await getDoc(
+              doc(db, "barbearias", firebaseUser.uid)
+            );
+            if (barbeariaDoc.exists()) {
+              const barbData = barbeariaDoc.data();
+              setBarbearia({
+                id: firebaseUser.uid,
+                nome: barbData.nome || "Minha Barbearia",
+                plano: barbData.plano || "free",
+                createdAt: barbData.createdAt?.toDate() || new Date(),
+              });
+            } else {
+              await setDoc(doc(db, "barbearias", firebaseUser.uid), {
+                nome: userData.nome || "Minha Barbearia",
+                plano: "free",
+                createdAt: serverTimestamp(),
+              });
+              setBarbearia({
+                id: firebaseUser.uid,
+                nome: userData.nome || "Minha Barbearia",
+                plano: "free",
+                createdAt: new Date(),
+              });
+            }
           } else {
-            await setDoc(doc(db, "barbearias", firebaseUser.uid), {
-              nome: userData.nome || "Minha Barbearia",
+            // Fallback if userDoc does not exist (e.g., auth created via console or latency)
+            const fallbackName = firebaseUser.email?.split("@")[0] || "Usuário";
+            
+            await setDoc(doc(db, "users", firebaseUser.uid), {
+              nome: fallbackName,
+              email: firebaseUser.email || "",
               plano: "free",
               createdAt: serverTimestamp(),
             });
+            
+            setUser({
+              id: firebaseUser.uid,
+              email: firebaseUser.email || "",
+              nome: fallbackName,
+              createdAt: new Date(),
+              plano: "free",
+            });
+
+            setIsAdmin(firebaseUser.email === "admin@gbarber.com");
+
+            await setDoc(doc(db, "barbearias", firebaseUser.uid), {
+              nome: fallbackName,
+              plano: "free",
+              createdAt: serverTimestamp(),
+            });
+            
             setBarbearia({
               id: firebaseUser.uid,
-              nome: userData.nome || "Minha Barbearia",
+              nome: fallbackName,
               plano: "free",
               createdAt: new Date(),
             });
           }
-        } else {
-          // Fallback if userDoc does not exist (e.g., auth created via console or latency)
-          const fallbackName = firebaseUser.email?.split("@")[0] || "Usuário";
-          
-          await setDoc(doc(db, "users", firebaseUser.uid), {
-            nome: fallbackName,
-            email: firebaseUser.email || "",
-            plano: "free",
-            createdAt: serverTimestamp(),
-          });
-          
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          // Provisoriamente configura usuário para evitar WSOD em caso de falha de permissão
           setUser({
             id: firebaseUser.uid,
             email: firebaseUser.email || "",
-            nome: fallbackName,
+            nome: firebaseUser.email?.split("@")[0] || "Usuário",
             createdAt: new Date(),
             plano: "free",
           });
-
           setIsAdmin(firebaseUser.email === "admin@gbarber.com");
-
-          await setDoc(doc(db, "barbearias", firebaseUser.uid), {
-            nome: fallbackName,
-            plano: "free",
-            createdAt: serverTimestamp(),
-          });
-          
-          setBarbearia({
-            id: firebaseUser.uid,
-            nome: fallbackName,
-            plano: "free",
-            createdAt: new Date(),
-          });
+        } finally {
+          setLoading(false);
         }
       } else {
         setUser(null);
         setBarbearia(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
