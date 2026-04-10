@@ -66,7 +66,17 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        <div className="p-4 border-b border-secondary flex items-center justify-between">
+        <div className="flex items-center justify-between p-4 border-b border-secondary">
+          {mobileOpen && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setMobileOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          )}
           {!isCollapsed && (
             <div>
               <h1 className="text-xl font-bold text-accent">GBarber</h1>
@@ -75,21 +85,18 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
               </p>
             </div>
           )}
+          {isCollapsed && (
+            <div className="flex-1 flex justify-center">
+              <span className="text-accent font-bold text-lg">GB</span>
+            </div>
+          )}
           <Button
             variant="ghost"
             size="icon"
-            className="hidden md:flex text-muted-foreground hover:text-primary-foreground"
+            className={cn("text-muted-foreground hover:text-primary-foreground", mobileOpen && "md:hidden")}
             onClick={onToggle}
           >
             <ChevronLeft className={cn("h-5 w-5 transition-transform", isCollapsed && "rotate-180")} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileOpen(false)}
-          >
-            <X className="h-5 w-5" />
           </Button>
         </div>
 
@@ -131,6 +138,15 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
             {!isCollapsed && <span className="ml-3">Sair</span>}
           </Button>
         </div>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-accent text-primary hover:bg-accent/80 shadow-md hidden md:flex items-center justify-center"
+          onClick={onToggle}
+        >
+          <ChevronLeft className={cn("h-3 w-3 transition-transform", isCollapsed && "rotate-180")} />
+        </Button>
       </aside>
 
       {mobileOpen && (
