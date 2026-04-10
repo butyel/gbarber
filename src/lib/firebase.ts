@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth as getFirebaseAuth } from "firebase/auth";
+import { getFirestore as getFirebaseFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDUGoawbda9t5SANXg5xsUvnYu2zojYJCQ",
@@ -11,14 +11,22 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:780850283537:web:3491a82712f3adafda1db0",
 };
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const getFirebaseInstance = () => {
+  if (typeof window === "undefined") return null;
+  return getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+};
 
-export function getUserId(): string | null {
-  if (typeof window !== "undefined" && auth) {
-    const user = auth.currentUser;
-    return user?.uid || null;
-  }
-  return null;
-}
+export const getAuth = () => {
+  const app = getFirebaseInstance();
+  if (!app) return null;
+  return getFirebaseAuth(app);
+};
+
+export const getDb = () => {
+  const app = getFirebaseInstance();
+  if (!app) return null;
+  return getFirebaseFirestore(app);
+};
+
+export const auth = getAuth();
+export const db = getDb();
