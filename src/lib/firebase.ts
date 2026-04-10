@@ -11,22 +11,16 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:780850283537:web:3491a82712f3adafda1db0",
 };
 
-const getFirebaseInstance = () => {
-  if (typeof window === "undefined") return null;
-  return getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-};
+let app;
+let auth;
+let db;
 
-export const getAuth = () => {
-  const app = getFirebaseInstance();
-  if (!app) return null;
-  return getFirebaseAuth(app);
-};
+if (typeof window !== "undefined") {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+  auth = getFirebaseAuth(app);
+  db = getFirebaseFirestore(app);
+}
 
-export const getDb = () => {
-  const app = getFirebaseInstance();
-  if (!app) return null;
-  return getFirebaseFirestore(app);
-};
-
-export const auth = getAuth();
-export const db = getDb();
+export { app, auth, db };
+export const getDb = () => db;
+export const getAuth = () => auth;
