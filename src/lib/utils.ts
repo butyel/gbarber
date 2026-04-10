@@ -29,7 +29,8 @@ export function formatTime(date: Date | string): string {
 
 export function getToday(): string {
   const today = new Date();
-  return today.toISOString().split("T")[0];
+  const offset = today.getTimezoneOffset() * 60000;
+  return new Date(today.getTime() - offset).toISOString().split("T")[0];
 }
 
 export function getDateString(date: Date): string {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
+import { collection, query, orderBy, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatCurrency, formatTime, getToday } from "@/lib/utils";
+import { formatCurrency, formatTime } from "@/lib/utils";
 import { DollarSign, Users, Receipt, TrendingUp, Plus, Wallet } from "lucide-react";
 import type { Atendimento } from "@/types";
 import { useRouter } from "next/navigation";
@@ -31,28 +31,22 @@ export default function DashboardPage() {
 
     const fetchData = async () => {
       try {
-        const today = getToday();
-        const todayStart = new Date(today);
-        const todayEnd = new Date(today);
-        todayEnd.setHours(23, 59, 59, 999);
-
         const appointmentsRef = collection(db, `barbearias/${user.id}/atendimentos`);
-        const q = query(
-          appointmentsRef,
-          where("createdAt", ">=", todayStart),
-          where("createdAt", "<=", todayEnd),
-          orderBy("createdAt", "desc"),
-          limit(10)
-        );
-
+        const q = query(appointmentsRef, orderBy("createdAt", "desc"));
         const snapshot = await getDocs(q);
-        const appointments = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: doc.data().createdAt?.toDate() || new Date(),
-        })) as Atendimento[];
+        
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        const appointments = snapshot.docs
+          .map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: doc.data().createdAt?.toDate() || new Date(),
+          }))
+          .filter((a: Atendimento) => a.createdAt >= todayStart) as Atendimento[];
 
-        setRecentAppointments(appointments);
+        setRecentAppointments(appointments.slice(0, 10));
 
         const faturamento = appointments.reduce((sum, a) => sum + a.valor, 0);
         const comissoes = appointments.reduce((sum, a) => sum + a.comissao, 0);
