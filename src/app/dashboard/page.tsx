@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, orderBy, getDocs, where } from "firebase/firestore";
+import { collection, query, orderBy, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
@@ -11,11 +11,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatTime } from "@/lib/utils";
 import { DollarSign, Users, Receipt, TrendingUp, TrendingDown, Plus, Wallet, Award } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import type { Atendimento } from "@/types";
 import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
-  const { user, barbearia } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -25,11 +26,12 @@ export default function DashboardPage() {
     comissoesDia: 0,
     lucroDia: 0,
     crescimento: 0,
-    yesterdayFaturamento: 0,
   });
   const [topBarbeiro, setTopBarbeiro] = useState<{ nome: string; valor: number } | null>(null);
   const [topServico, setTopServico] = useState<{ nome: string; quantidade: number } | null>(null);
   const [recentAppointments, setRecentAppointments] = useState<Atendimento[]>([]);
+  const [faturamentoSemanal, setFaturamentoSemanal] = useState<{ dia: string; valor: number }[]>([]);
+  const [atendimentosHora, setAtendimentosHora] = useState<{ hora: string; count: number }[]>([]);
 
   useEffect(() => {
     if (!user || !db) return;
@@ -79,7 +81,6 @@ export default function DashboardPage() {
         comissoesDia,
         lucroDia,
         crescimento,
-        yesterdayFaturamento,
       });
 
       setRecentAppointments(todayAppointments.slice(0, 10));
@@ -101,6 +102,39 @@ export default function DashboardPage() {
         const top = Object.entries(servicoCount).reduce((a, b) => a[1] > b[1] ? a : b);
         setTopServico({ nome: top[0], quantidade: top[1] });
       }
+
+      const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+      const semanal: { dia: string; valor: number }[] = [];
+      
+      for (let i = 6; i >= 0; i--) {
+        const dia = new Date(todayStart);
+        dia.setDate(dia.getDate() - i);
+        const diaStart = new Date(dia);
+        diaStart.setHours(0, 0, 0, 0);
+        const diaEnd = new Date(dia);
+        diaEnd.setHours(23, 59, 59, 999);
+        
+        const doDia = allAppointments.filter(a => a.createdAt >= diaStart && a.createdAt <= diaEnd);
+        const valor = doDia.reduce((sum, a) => sum + a.valor, 0);
+        
+        semanal.push({
+          dia: diasSemana[dia.getDay()],
+          valor,
+        });
+      }
+      setFaturamentoSemanal(semanal);
+
+      const horaCount: Record<string, number> = {};
+      todayAppointments.forEach(a => {
+        const hora = a.createdAt.getHours();
+        const label = `${hora}h`;
+        horaCount[label] = (horaCount[label] || 0) + 1;
+      });
+      
+      const horaData = Object.entries(horaCount)
+        .map(([hora, count]) => ({ hora, count }))
+        .sort((a, b) => parseInt(a.hora) - parseInt(b.hora));
+      setAtendimentosHora(horaData);
 
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -232,6 +266,57 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Faturamento últimos 7 dias</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-40 w-full" />
+              ) : (
+                <ResponsiveContainer width="100%" height={160}>
+                  <BarChart data={faturamentoSemanal}>
+                    <XAxis dataKey="dia" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `R$${v}`} />
+                    <Tooltip 
+                      formatter={(value: number) => formatCurrency(value)}
+                      contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
+                    />
+                    <Bar dataKey="valor" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Atendimentos por hora (Hoje)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-40 w-full" />
+              ) : atendimentosHora.length === 0 ? (
+                <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
+                  Nenhum atendimento hoje
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={160}>
+                  <LineChart data={atendimentosHora}>
+                    <XAxis dataKey="hora" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
+                    />
+                    <Line type="monotone" dataKey="count" stroke="#f59e0b" strokeWidth={2} dot={{ fill: "#f59e0b" }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         <Card className="overflow-x-auto">
