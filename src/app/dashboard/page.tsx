@@ -73,20 +73,20 @@ export default function DashboardPage() {
       <Topbar
         action={
           <div className="flex gap-2">
-            <Button onClick={() => router.push("/dashboard/atendimentos")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Atendimento
+            <Button onClick={() => router.push("/dashboard/atendimentos")} size="sm">
+              <Plus className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Novo</span>
             </Button>
-            <Button variant="outline" onClick={() => router.push("/dashboard/caixa")}>
+            <Button variant="outline" onClick={() => router.push("/dashboard/caixa")} size="sm" className="hidden sm:flex">
               <Wallet className="h-4 w-4 mr-2" />
-              Fechar Caixa
+              Caixa
             </Button>
           </div>
         }
       />
 
-      <div className="p-6 space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Faturamento Hoje</CardTitle>
@@ -156,51 +156,53 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="overflow-x-auto">
           <CardHeader>
             <CardTitle>Últimos Atendimentos</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Barbeiro</TableHead>
-                  <TableHead>Serviço</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Hora</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-12" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : recentAppointments.length === 0 ? (
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      Nenhum atendimento hoje
-                    </TableCell>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Barbeiro</TableHead>
+                    <TableHead>Serviço</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Hora</TableHead>
                   </TableRow>
-                ) : (
-                  recentAppointments.map((appointment) => (
-                    <TableRow key={appointment.id}>
-                      <TableCell className="font-medium">{appointment.cliente}</TableCell>
-                      <TableCell>{appointment.barbeiroNome}</TableCell>
-                      <TableCell>{appointment.servicoNome}</TableCell>
-                      <TableCell>{formatCurrency(appointment.valor)}</TableCell>
-                      <TableCell>{formatTime(appointment.createdAt)}</TableCell>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : recentAppointments.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                        Nenhum atendimento hoje
+                      </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    recentAppointments.map((appointment) => (
+                      <TableRow key={appointment.id}>
+                        <TableCell className="font-medium">{appointment.cliente}</TableCell>
+                        <TableCell className="whitespace-nowrap">{appointment.barbeiroNome}</TableCell>
+                        <TableCell className="whitespace-nowrap">{appointment.servicoNome}</TableCell>
+                        <TableCell>{formatCurrency(appointment.valor)}</TableCell>
+                        <TableCell>{formatTime(appointment.createdAt)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

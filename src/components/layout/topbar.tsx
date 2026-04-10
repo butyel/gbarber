@@ -29,23 +29,23 @@ export function Topbar({ action }: { action?: React.ReactNode }) {
     : title;
 
   return (
-    <header className="sticky top-0 z-20 h-16 bg-card border-b border-border px-6 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <h1 className="text-xl font-semibold text-foreground">{displayTitle}</h1>
+    <header className="sticky top-0 z-20 h-14 md:h-16 bg-card border-b border-border px-3 md:px-6 flex items-center justify-between">
+      <div className="flex items-center gap-2 md:gap-4">
+        <h1 className="text-base md:text-xl font-semibold text-foreground truncate max-w-[150px] md:max-w-none">{displayTitle}</h1>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 md:gap-3">
         {action}
         
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" className="hidden sm:flex">
           <Bell className="h-5 w-5" />
         </Button>
 
-        <div className="flex items-center gap-2 ml-2">
+        <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center">
             {isAdmin ? <Crown className="h-4 w-4 text-primary" /> : <User className="h-4 w-4 text-primary" />}
           </div>
-          <span className="text-sm font-medium hidden sm:inline">
+          <span className="text-sm font-medium hidden md:inline">
             {user?.nome}
           </span>
         </div>
