@@ -26,13 +26,13 @@ import { useState } from "react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/agenda", label: "Agenda", icon: Calendar },
-  { href: "/dashboard/clientes", label: "Clientes", icon: User },
-  { href: "/dashboard/servicos", label: "Serviços", icon: Scissors },
   { href: "/dashboard/atendimentos", label: "Atendimentos", icon: ClipboardList },
+  { href: "/dashboard/clientes", label: "Clientes", icon: User },
   { href: "/dashboard/barbeiros", label: "Barbeiros", icon: Users },
-  { href: "/dashboard/produtos", label: "Produtos", icon: Package },
   { href: "/dashboard/caixa", label: "Caixa", icon: Wallet },
+  { href: "/dashboard/agenda", label: "Agenda", icon: Calendar },
+  { href: "/dashboard/servicos", label: "Serviços", icon: Scissors },
+  { href: "/dashboard/produtos", label: "Produtos", icon: Package },
   { href: "/dashboard/relatorios", label: "Relatórios", icon: BarChart3 },
   { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings },
 ];
