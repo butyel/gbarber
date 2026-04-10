@@ -13,6 +13,15 @@ export interface Barbearia {
   createdAt: Date;
 }
 
+export interface Cliente {
+  id: string;
+  nome: string;
+  telefone?: string;
+  email?: string;
+  observacoes?: string;
+  createdAt: Date;
+}
+
 export interface Barbeiro {
   id: string;
   nome: string;
