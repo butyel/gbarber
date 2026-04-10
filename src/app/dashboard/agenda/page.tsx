@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Plus, Clock, User, Scissors, X, Check, Phone, Calendar } from "lucide-react";
-import type { Atendimento, Barbeiro, Servico } from "@/types";
+import type { Atendimento, Barbeiro, Servico, Cliente } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 8);
@@ -28,6 +28,7 @@ export default function AgendaPage() {
   const [appointments, setAppointments] = useState<Atendimento[]>([]);
   const [barbeiros, setBarbeiros] = useState<Barbeiro[]>([]);
   const [servicos, setServicos] = useState<Servico[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ date: string; hour: number } | null>(null);
@@ -49,10 +50,11 @@ export default function AgendaPage() {
 
   const fetchData = async () => {
     try {
-      const [appointmentsSnap, barbeirosSnap, servicosSnap] = await Promise.all([
+      const [appointmentsSnap, barbeirosSnap, servicosSnap, clientesSnap] = await Promise.all([
         getDocs(query(collection(db, `barbearias/${user!.id}/atendimentos`), orderBy("data", "asc"))),
         getDocs(query(collection(db, `barbearias/${user!.id}/barbeiros`), orderBy("nome"))),
         getDocs(query(collection(db, `barbearias/${user!.id}/servicos`), orderBy("nome"))),
+        getDocs(query(collection(db, `barbearias/${user!.id}/clientes`), orderBy("nome"))),
       ]);
 
       setAppointments(appointmentsSnap.docs.map(doc => {
@@ -75,6 +77,12 @@ export default function AgendaPage() {
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate() || new Date(),
       })) as Servico[]);
+
+      setClientes(clientesSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate() || new Date(),
+      })) as Cliente[]);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -351,6 +359,36 @@ export default function AgendaPage() {
             </div>
             <div className="space-y-2">
               <Label>Cliente *</Label>
+              <Select 
+                value={formData.cliente || "__manual__"} 
+                onValueChange={(value) => {
+                  if (value === "__manual__") {
+                    setFormData({ ...formData, cliente: "", telefone: "" });
+                  } else {
+                    const cliente = clientes.find(c => c.id === value);
+                    if (cliente) {
+                      setFormData({ 
+                        ...formData, 
+                        cliente: cliente.nome,
+                        telefone: cliente.telefone || "",
+                      });
+                    }
+                  }
+                }}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecione ou digite" /></SelectTrigger>
+                <SelectContent>
+                  {clientes.map(c => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.nome} {c.telefone && `- ${c.telefone}`}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="__manual__">Digitar nome...</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Nome do Cliente</Label>
               <Input 
                 value={formData.cliente}
                 onChange={(e) => setFormData({ ...formData, cliente: e.target.value })}
