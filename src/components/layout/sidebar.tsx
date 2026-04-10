@@ -15,7 +15,8 @@ import {
   Menu,
   Crown,
   Calendar,
-  User
+  User,
+  ClipboardList
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -26,7 +27,7 @@ const navItems = [
   { href: "/dashboard/agenda", label: "Agenda", icon: Calendar },
   { href: "/dashboard/clientes", label: "Clientes", icon: User },
   { href: "/dashboard/servicos", label: "Serviços", icon: Scissors },
-  { href: "/dashboard/atendimentos", label: "Atendimentos", icon: Scissors },
+  { href: "/dashboard/atendimentos", label: "Atendimentos", icon: ClipboardList },
   { href: "/dashboard/barbeiros", label: "Barbeiros", icon: Users },
   { href: "/dashboard/produtos", label: "Produtos", icon: Package },
   { href: "/dashboard/caixa", label: "Caixa", icon: Wallet },
