@@ -19,14 +19,17 @@ const pageTitles: Record<string, string> = {
 
 export function Topbar({ action }: { action?: React.ReactNode }) {
   const pathname = usePathname();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, barbearia } = useAuth();
 
   const title = pageTitles[pathname] || "Dashboard";
+  const displayTitle = pathname === "/dashboard" && barbearia 
+    ? `Dashboard - ${barbearia.nome}` 
+    : title;
 
   return (
     <header className="sticky top-0 z-20 h-16 bg-card border-b border-border px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <h1 className="text-xl font-semibold text-foreground">{title}</h1>
+        <h1 className="text-xl font-semibold text-foreground">{displayTitle}</h1>
       </div>
 
       <div className="flex items-center gap-3">
