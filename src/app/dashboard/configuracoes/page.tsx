@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db as firebaseDb } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -26,11 +26,11 @@ export default function ConfiguracoesPage() {
   }, [barbearia, user]);
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || !firebaseDb) return;
     setSaving(true);
     try {
-      await updateDoc(doc(db, "barbearias", user.id), { nome: nomeBarbearia });
-      await updateDoc(doc(db, "users", user.id), { nome: nomeUsuario });
+      await updateDoc(doc(firebaseDb, "barbearias", user.id), { nome: nomeBarbearia });
+      await updateDoc(doc(firebaseDb, "users", user.id), { nome: nomeUsuario });
       toast({ title: "Configurações salvas!" });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erro", description: error.message });

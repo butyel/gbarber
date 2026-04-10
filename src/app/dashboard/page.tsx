@@ -79,7 +79,7 @@ export default function DashboardPage() {
       <Topbar
         action={
           <div className="flex gap-2">
-            <Button onClick={() => router.push("/dashboard/atendimento/novo")}>
+            <Button onClick={() => router.push("/dashboard/atendimentos")}>
               <Plus className="h-4 w-4 mr-2" />
               Novo Atendimento
             </Button>
