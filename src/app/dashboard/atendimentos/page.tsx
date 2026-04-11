@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDate, formatTime } from "@/lib/utils";
-import { Plus, Search, Trash2, Loader2, RotateCcw } from "lucide-react";
+import { Plus, Search, Trash2, Loader2, RotateCcw, Eye, Pencil } from "lucide-react";
 import type { Atendimento, Barbeiro, Servico, Produto } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -33,6 +33,8 @@ export default function AtendimentosPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showClienteSuggestions, setShowClienteSuggestions] = useState(false);
+  const [selectedAtendimento, setSelectedAtendimento] = useState<Atendimento | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const clienteInputRef = useRef<HTMLInputElement>(null);
 
   const [lastAtendimento, setLastAtendimento] = useState<{servicoId: string; barbeiroId: string; valor: number} | null>(null);
@@ -173,6 +175,26 @@ export default function AtendimentosPage() {
     }
   };
 
+  const handleViewDetails = (appointment: Atendimento) => {
+    setSelectedAtendimento(appointment);
+    setIsEditMode(false);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (appointment: Atendimento) => {
+    setSelectedAtendimento(appointment);
+    setIsEditMode(true);
+    setFormData({
+      cliente: appointment.cliente,
+      barbeiroId: appointment.barbeiroId,
+      servicoId: appointment.servicoId,
+      valor: appointment.valor,
+      produtoId: appointment.produtoVendido?.produtoId || "",
+      produtoQuantidade: appointment.produtoVendido?.quantidade || 1,
+    });
+    setIsModalOpen(true);
+  };
+
   const filteredAppointments = appointments.filter(a => 
     a.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
     a.barbeiroNome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -283,9 +305,17 @@ export default function AtendimentosPage() {
                       <TableCell>{formatCurrency(appointment.valor + (appointment.produtoVendido?.valor || 0))}</TableCell>
                       <TableCell>{formatCurrency(appointment.comissao)}</TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(appointment.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleViewDetails(appointment)} title="Ver detalhes">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(appointment)} title="Editar">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(appointment.id)} title="Excluir">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -299,8 +329,52 @@ export default function AtendimentosPage() {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Novo Atendimento</DialogTitle>
+            <DialogTitle>
+              {isEditMode ? "Editar Atendimento" : selectedAtendimento ? "Detalhes do Atendimento" : "Novo Atendimento"}
+            </DialogTitle>
           </DialogHeader>
+          {selectedAtendimento && !isEditMode ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Data</p>
+                  <p className="font-medium">{formatDate(selectedAtendimento.createdAt)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Hora</p>
+                  <p className="font-medium">{formatTime(selectedAtendimento.createdAt)}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Cliente</p>
+                <p className="font-medium">{selectedAtendimento.cliente}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Barbeiro</p>
+                <p className="font-medium">{selectedAtendimento.barbeiroNome}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Serviço</p>
+                <p className="font-medium">{selectedAtendimento.servicoNome}</p>
+              </div>
+              {selectedAtendimento.produtoVendido && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Produto</p>
+                  <p className="font-medium">{selectedAtendimento.produtoVendido.nome} (x{selectedAtendimento.produtoVendido.quantidade})</p>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                <div>
+                  <p className="text-sm text-muted-foreground">Valor Total</p>
+                  <p className="font-bold text-lg">{formatCurrency(selectedAtendimento.valor + (selectedAtendimento.produtoVendido?.valor || 0))}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Comissão</p>
+                  <p className="font-medium">{formatCurrency(selectedAtendimento.comissao)}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
           <div className="space-y-4" onKeyDown={handleKeyDown}>
             <div className="space-y-2">
               <Label>Cliente</Label>
@@ -373,13 +447,20 @@ export default function AtendimentosPage() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar
-            </Button>
+            <Button variant="outline" onClick={() => {
+              setIsModalOpen(false);
+              setSelectedAtendimento(null);
+              setIsEditMode(false);
+              setFormData({ cliente: "", barbeiroId: "", servicoId: "", valor: 0, produtoId: "", produtoQuantidade: 1 });
+            }}>Fechar</Button>
+            {isEditMode && (
+              <Button onClick={handleSubmit} disabled={submitting}>
+                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Salvar
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
