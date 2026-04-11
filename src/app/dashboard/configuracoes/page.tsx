@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Loader2 } from "lucide-react";
+import { Settings, Loader2, MessageCircle } from "lucide-react";
 
 export default function ConfiguracoesPage() {
   const { user, barbearia } = useAuth();
@@ -91,11 +91,26 @@ export default function ConfiguracoesPage() {
           <CardHeader>
             <CardTitle>Sobre o Sistema</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              GBarber v1.0 - Sistema de Gestão de Barbearia<br />
-              Desenvolvido para facilitar a gestão do seu negócio.
-            </p>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">GBarber v1.0</span> - Sistema de Gestão de Barbearia
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Desenvolvido para facilitar a gestão do seu negócio.
+              </p>
+            </div>
+            <div className="border-t pt-4">
+              <p className="text-sm text-muted-foreground mb-2">Desenvolvedor</p>
+              <p className="font-medium">Raphael Fernandes</p>
+            </div>
+            <Button 
+              className="w-full" 
+              onClick={() => window.open("https://wa.me/5518981939533", "_blank")}
+            >
+              <MessageCircle className="mr-2 h-4 w-4" />
+              Suporte via WhatsApp
+            </Button>
           </CardContent>
         </Card>
       </div>
