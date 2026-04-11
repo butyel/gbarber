@@ -375,7 +375,7 @@ export default function AtendimentosPage() {
               </div>
             </div>
           ) : (
-          <div className="space-y-4" onKeyDown={handleKeyDown}>
+            <div className="space-y-4" onKeyDown={handleKeyDown}>
             <div className="space-y-2">
               <Label>Cliente</Label>
               <div className="relative">
