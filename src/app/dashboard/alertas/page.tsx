@@ -80,10 +80,10 @@ export default function AlertasPage() {
       });
 
       const barbeirosSnap = await getDocs(collection(db, `barbearias/${user.id}/barbeiros`));
-      const barbeiros = barbeirosSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const barbeiros = barbeirosSnap.docs.map(d => ({ id: d.id, ...d.data() })) as { id: string; nome: string }[];
 
       Object.entries(barbeirosMap).forEach(([barbeiroId, stats]) => {
-        const barba = barbeiros.find(b => b.id === barbairoId);
+        const barba = barbeiros.find(b => b.id === barbeiroId);
         if (stats.atendimentos < 5) {
           novosAlertas.push({
             tipo: "barbeiro",

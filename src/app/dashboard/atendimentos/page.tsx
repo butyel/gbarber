@@ -17,12 +17,10 @@ import { formatCurrency, formatDate, formatTime } from "@/lib/utils";
 import { Plus, Search, Trash2, Loader2, RotateCcw, Eye, Pencil } from "lucide-react";
 import type { Atendimento, Barbeiro, Servico, Produto } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 
 export default function AtendimentosPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [appointments, setAppointments] = useState<Atendimento[]>([]);
@@ -35,7 +33,6 @@ export default function AtendimentosPage() {
   const [showClienteSuggestions, setShowClienteSuggestions] = useState(false);
   const [selectedAtendimento, setSelectedAtendimento] = useState<Atendimento | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const clienteInputRef = useRef<HTMLInputElement>(null);
 
   const [lastAtendimento, setLastAtendimento] = useState<{servicoId: string; barbeiroId: string; valor: number} | null>(null);
   
@@ -70,11 +67,9 @@ export default function AtendimentosPage() {
 
       setAppointments(appointmentsData);
 
-      // Extrair clientes únicos
       const uniqueClientes = [...new Set(appointmentsData.map(a => a.cliente).filter(Boolean))];
       setClientes(uniqueClientes);
 
-      // Salvar último atendimento para repetição rápida
       if (appointmentsData.length > 0) {
         const last = appointmentsData[0];
         setLastAtendimento({
@@ -124,7 +119,7 @@ export default function AtendimentosPage() {
         comissao = (servico.preco * barbeiro.comissaoServico) / 100;
       }
 
-      const atendimento = {
+      const atendimento: any = {
         cliente: formData.cliente,
         barbeiroId: formData.barbeiroId,
         barbeiroNome: barbeiro?.nome || "",
@@ -138,14 +133,14 @@ export default function AtendimentosPage() {
       if (formData.produtoId && formData.produtoQuantidade > 0) {
         const produto = produtos.find(p => p.id === formData.produtoId);
         if (produto) {
-          (atendimento as any).produtoVendido = {
+          atendimento.produtoVendido = {
             produtoId: formData.produtoId,
             nome: produto.nome,
             valor: produto.precoVenda * formData.produtoQuantidade,
             quantidade: formData.produtoQuantidade,
           };
           comissao += (produto.precoVenda * formData.produtoQuantidade * (barbeiro?.comissaoProduto || 15)) / 100;
-          (atendimento as any).comissao = comissao;
+          atendimento.comissao = comissao;
         }
       }
 
@@ -333,6 +328,7 @@ export default function AtendimentosPage() {
               {isEditMode ? "Editar Atendimento" : selectedAtendimento ? "Detalhes do Atendimento" : "Novo Atendimento"}
             </DialogTitle>
           </DialogHeader>
+          
           {selectedAtendimento && !isEditMode ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -376,78 +372,79 @@ export default function AtendimentosPage() {
             </div>
           ) : (
             <div className="space-y-4" onKeyDown={handleKeyDown}>
-            <div className="space-y-2">
-              <Label>Cliente</Label>
-              <div className="relative">
+              <div className="space-y-2">
+                <Label>Cliente</Label>
+                <div className="relative">
+                  <Input 
+                    value={formData.cliente}
+                    onChange={(e) => {
+                      setFormData({ ...formData, cliente: e.target.value });
+                      setShowClienteSuggestions(true);
+                    }}
+                    onFocus={() => setShowClienteSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowClienteSuggestions(false), 200)}
+                    placeholder="Nome do cliente"
+                    autoComplete="off"
+                  />
+                  {showClienteSuggestions && filteredClientes.length > 0 && (
+                    <div className="absolute z-10 w-full bg-card border shadow-lg rounded-md mt-1 max-h-40 overflow-auto">
+                      {filteredClientes.map((cliente, idx) => (
+                        <div
+                          key={idx}
+                          className="px-3 py-2 cursor-pointer hover:bg-accent/20"
+                          onClick={() => {
+                            setFormData({ ...formData, cliente });
+                            setShowClienteSuggestions(false);
+                          }}
+                        >
+                          {cliente}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Barbeiro</Label>
+                <Select value={formData.barbeiroId} onValueChange={(v) => setFormData({ ...formData, barbeiroId: v })}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {barbeiros.map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Serviço</Label>
+                <Select value={formData.servicoId} onValueChange={(v) => {
+                  const servico = servicos.find(s => s.id === v);
+                  setFormData({ ...formData, servicoId: v, valor: servico?.preco || 0 });
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {servicos.map(s => <SelectItem key={s.id} value={s.id}>{s.nome} - {formatCurrency(s.preco)}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Valor</Label>
                 <Input 
-                  value={formData.cliente}
-                  onChange={(e) => {
-                    setFormData({ ...formData, cliente: e.target.value });
-                    setShowClienteSuggestions(true);
-                  }}
-                  onFocus={() => setShowClienteSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowClienteSuggestions(false), 200)}
-                  placeholder="Nome do cliente"
-                  autoComplete="off"
+                  type="number"
+                  value={formData.valor}
+                  onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) || 0 })}
                 />
-                {showClienteSuggestions && filteredClientes.length > 0 && (
-                  <div className="absolute z-10 w-full bg-card border shadow-lg rounded-md mt-1 max-h-40 overflow-auto">
-                    {filteredClientes.map((cliente, idx) => (
-                      <div
-                        key={idx}
-                        className="px-3 py-2 cursor-pointer hover:bg-accent/20"
-                        onClick={() => {
-                          setFormData({ ...formData, cliente });
-                          setShowClienteSuggestions(false);
-                        }}
-                      >
-                        {cliente}
-                      </div>
-                    ))}
-                  </div>
-                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Produto (opcional)</Label>
+                <Select value={formData.produtoId} onValueChange={(v) => setFormData({ ...formData, produtoId: v })}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {produtos.filter(p => p.quantidade > 0).map(p => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Barbeiro</Label>
-              <Select value={formData.barbeiroId} onValueChange={(v) => setFormData({ ...formData, barbeiroId: v })}>
-                <SelectTrigger onKeyDown={handleKeyDown}><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {barbeiros.map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Serviço</Label>
-              <Select value={formData.servicoId} onValueChange={(v) => {
-                const servico = servicos.find(s => s.id === v);
-                setFormData({ ...formData, servicoId: v, valor: servico?.preco || 0 });
-              }}>
-                <SelectTrigger onKeyDown={handleKeyDown}><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {servicos.map(s => <SelectItem key={s.id} value={s.id}>{s.nome} - {formatCurrency(s.preco)}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Valor</Label>
-              <Input 
-                type="number"
-                value={formData.valor}
-                onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) || 0 })}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Produto (opcional)</Label>
-              <Select value={formData.produtoId} onValueChange={(v) => setFormData({ ...formData, produtoId: v })}>
-                <SelectTrigger onKeyDown={handleKeyDown}><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {produtos.filter(p => p.quantidade > 0).map(p => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
           )}
+          
           <DialogFooter>
             <Button variant="outline" onClick={() => {
               setIsModalOpen(false);
