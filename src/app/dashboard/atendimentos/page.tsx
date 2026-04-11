@@ -52,11 +52,12 @@ export default function AtendimentosPage() {
 
   const fetchData = async () => {
     try {
-      const [appointmentsSnap, barbeirosSnap, servicosSnap, produtosSnap] = await Promise.all([
+      const [appointmentsSnap, barbeirosSnap, servicosSnap, produtosSnap, clientesSnap] = await Promise.all([
         getDocs(query(collection(db, `barbearias/${user!.id}/atendimentos`), orderBy("createdAt", "desc"))),
         getDocs(query(collection(db, `barbearias/${user!.id}/barbeiros`), orderBy("nome"))),
         getDocs(query(collection(db, `barbearias/${user!.id}/servicos`), orderBy("nome"))),
         getDocs(query(collection(db, `barbearias/${user!.id}/produtos`))),
+        getDocs(query(collection(db, `barbearias/${user!.id}/clientes`), orderBy("nome"))),
       ]);
 
       const appointmentsData = appointmentsSnap.docs.map(doc => ({
@@ -96,6 +97,10 @@ export default function AtendimentosPage() {
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate() || new Date(),
       })) as Produto[]);
+
+      // Carregar clientes cadastrados na página Clientes
+      const clientesData = clientesSnap.docs.map(doc => doc.data().nome).filter(Boolean);
+      setClientes(clientesData);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -106,6 +111,12 @@ export default function AtendimentosPage() {
   const handleSubmit = async () => {
     if (!user || !formData.cliente || !formData.barbeiroId || !formData.servicoId) {
       toast({ variant: "destructive", title: "Preencha todos os campos" });
+      return;
+    }
+
+    // Verificar se o cliente está cadastrado na página Clientes
+    if (!clientes.includes(formData.cliente)) {
+      toast({ variant: "destructive", title: "Cliente não encontrado", description: "Selecione um cliente cadastrado na página Clientes" });
       return;
     }
 
@@ -374,35 +385,17 @@ export default function AtendimentosPage() {
             <div className="space-y-4" onKeyDown={handleKeyDown}>
               <div className="space-y-2">
                 <Label>Cliente</Label>
-                <div className="relative">
-                  <Input 
-                    value={formData.cliente}
-                    onChange={(e) => {
-                      setFormData({ ...formData, cliente: e.target.value });
-                      setShowClienteSuggestions(true);
-                    }}
-                    onFocus={() => setShowClienteSuggestions(true)}
-                    onBlur={() => setTimeout(() => setShowClienteSuggestions(false), 200)}
-                    placeholder="Nome do cliente"
-                    autoComplete="off"
-                  />
-                  {showClienteSuggestions && filteredClientes.length > 0 && (
-                    <div className="absolute z-10 w-full bg-card border shadow-lg rounded-md mt-1 max-h-40 overflow-auto">
-                      {filteredClientes.map((cliente, idx) => (
-                        <div
-                          key={idx}
-                          className="px-3 py-2 cursor-pointer hover:bg-accent/20"
-                          onClick={() => {
-                            setFormData({ ...formData, cliente });
-                            setShowClienteSuggestions(false);
-                          }}
-                        >
-                          {cliente}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <Select value={formData.cliente} onValueChange={(v) => setFormData({ ...formData, cliente: v })}>
+                  <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
+                  <SelectContent>
+                    {clientes.map((cliente, idx) => (
+                      <SelectItem key={idx} value={cliente}>{cliente}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {clientes.length === 0 && (
+                  <p className="text-xs text-muted-foreground">Nenhum cliente cadastrado. Vá na página Clientes para adicionar.</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Barbeiro</Label>
