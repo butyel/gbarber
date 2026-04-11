@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { collection, query, orderBy, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDate, formatTime } from "@/lib/utils";
-import { Plus, Search, Trash2, Loader2 } from "lucide-react";
+import { Plus, Search, Trash2, Loader2, RotateCcw } from "lucide-react";
 import type { Atendimento, Barbeiro, Servico, Produto } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -29,8 +29,13 @@ export default function AtendimentosPage() {
   const [barbeiros, setBarbeiros] = useState<Barbeiro[]>([]);
   const [servicos, setServicos] = useState<Servico[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [clientes, setClientes] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showClienteSuggestions, setShowClienteSuggestions] = useState(false);
+  const clienteInputRef = useRef<HTMLInputElement>(null);
+
+  const [lastAtendimento, setLastAtendimento] = useState<{servicoId: string; barbeiroId: string; valor: number} | null>(null);
   
   const [formData, setFormData] = useState({
     cliente: "",
@@ -55,11 +60,27 @@ export default function AtendimentosPage() {
         getDocs(query(collection(db, `barbearias/${user!.id}/produtos`))),
       ]);
 
-      setAppointments(appointmentsSnap.docs.map(doc => ({
+      const appointmentsData = appointmentsSnap.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate() || new Date(),
-      })) as Atendimento[]);
+      })) as Atendimento[];
+
+      setAppointments(appointmentsData);
+
+      // Extrair clientes únicos
+      const uniqueClientes = [...new Set(appointmentsData.map(a => a.cliente).filter(Boolean))];
+      setClientes(uniqueClientes);
+
+      // Salvar último atendimento para repetição rápida
+      if (appointmentsData.length > 0) {
+        const last = appointmentsData[0];
+        setLastAtendimento({
+          servicoId: last.servicoId,
+          barbeiroId: last.barbeiroId,
+          valor: last.valor,
+        });
+      }
 
       setBarbeiros(barbeirosSnap.docs.map(doc => ({
         id: doc.id,
@@ -158,14 +179,45 @@ export default function AtendimentosPage() {
     a.servicoNome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  const handleRepeatLast = () => {
+    if (lastAtendimento) {
+      setFormData({
+        ...formData,
+        servicoId: lastAtendimento.servicoId,
+        barbeiroId: lastAtendimento.barbeiroId,
+        valor: lastAtendimento.valor,
+      });
+      toast({ title: "Último serviço preenchido" });
+    }
+  };
+
+  const filteredClientes = clientes.filter(c => 
+    c.toLowerCase().includes(formData.cliente.toLowerCase())
+  ).slice(0, 5);
+
   return (
     <div className="min-h-screen">
       <Topbar 
         action={
-          <Button onClick={() => setIsModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Atendimento
-          </Button>
+          <div className="flex gap-2">
+            {lastAtendimento && (
+              <Button variant="outline" onClick={handleRepeatLast} title="Repetir último serviço">
+                <RotateCcw className="h-4 w-4 mr-1" />
+                Repetir
+              </Button>
+            )}
+            <Button onClick={() => setIsModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo
+            </Button>
+          </div>
         }
       />
 
@@ -249,19 +301,43 @@ export default function AtendimentosPage() {
           <DialogHeader>
             <DialogTitle>Novo Atendimento</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4" onKeyDown={handleKeyDown}>
             <div className="space-y-2">
               <Label>Cliente</Label>
-              <Input 
-                value={formData.cliente}
-                onChange={(e) => setFormData({ ...formData, cliente: e.target.value })}
-                placeholder="Nome do cliente"
-              />
+              <div className="relative">
+                <Input 
+                  value={formData.cliente}
+                  onChange={(e) => {
+                    setFormData({ ...formData, cliente: e.target.value });
+                    setShowClienteSuggestions(true);
+                  }}
+                  onFocus={() => setShowClienteSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowClienteSuggestions(false), 200)}
+                  placeholder="Nome do cliente"
+                  autoComplete="off"
+                />
+                {showClienteSuggestions && filteredClientes.length > 0 && (
+                  <div className="absolute z-10 w-full bg-card border shadow-lg rounded-md mt-1 max-h-40 overflow-auto">
+                    {filteredClientes.map((cliente, idx) => (
+                      <div
+                        key={idx}
+                        className="px-3 py-2 cursor-pointer hover:bg-accent/20"
+                        onClick={() => {
+                          setFormData({ ...formData, cliente });
+                          setShowClienteSuggestions(false);
+                        }}
+                      >
+                        {cliente}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Barbeiro</Label>
               <Select value={formData.barbeiroId} onValueChange={(v) => setFormData({ ...formData, barbeiroId: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger onKeyDown={handleKeyDown}><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   {barbeiros.map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}
                 </SelectContent>
@@ -273,7 +349,7 @@ export default function AtendimentosPage() {
                 const servico = servicos.find(s => s.id === v);
                 setFormData({ ...formData, servicoId: v, valor: servico?.preco || 0 });
               }}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger onKeyDown={handleKeyDown}><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   {servicos.map(s => <SelectItem key={s.id} value={s.id}>{s.nome} - {formatCurrency(s.preco)}</SelectItem>)}
                 </SelectContent>
@@ -285,12 +361,13 @@ export default function AtendimentosPage() {
                 type="number"
                 value={formData.valor}
                 onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) || 0 })}
+                onKeyDown={handleKeyDown}
               />
             </div>
             <div className="space-y-2">
               <Label>Produto (opcional)</Label>
               <Select value={formData.produtoId} onValueChange={(v) => setFormData({ ...formData, produtoId: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger onKeyDown={handleKeyDown}><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   {produtos.filter(p => p.quantidade > 0).map(p => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
                 </SelectContent>
