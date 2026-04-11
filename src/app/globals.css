@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #BDD8E9;
-  --color-foreground: #001D39;
+  --color-background: #F1F5F9;
+  --color-foreground: #0F172A;
   --color-card: #FFFFFF;
-  --color-card-foreground: #001D39;
+  --color-card-foreground: #0F172A;
   --color-popover: #FFFFFF;
-  --color-popover-foreground: #001D39;
-  --color-primary: #001D39;
-  --color-primary-foreground: #FFFFFF;
-  --color-secondary: #0A4174;
-  --color-secondary-foreground: #FFFFFF;
-  --color-muted: #49769F;
-  --color-muted-foreground: #49769F;
-  --color-accent: #4E8EA2;
-  --color-accent-foreground: #FFFFFF;
+  --color-popover-foreground: #0F172A;
+  --color-primary: #0F172A;
+  --color-primary-foreground: #F8FAFC;
+  --color-secondary: #1E293B;
+  --color-secondary-foreground: #F8FAFC;
+  --color-muted: #64748B;
+  --color-muted-foreground: #64748B;
+  --color-accent: #F59E0B;
+  --color-accent-foreground: #0F172A;
   --color-destructive: #EF4444;
   --color-destructive-foreground: #FFFFFF;
-  --color-border: #49769F;
-  --color-input: #49769F;
-  --color-ring: #6EA2B3;
+  --color-border: #E2E8F0;
+  --color-input: #E2E8F0;
+  --color-ring: #F59E0B;
   --color-success: #22C55E;
-  --color-info: #7BBDE8;
+  --color-info: #3B82F6;
 
   --font-sans: var(--font-geist-sans);
 }
