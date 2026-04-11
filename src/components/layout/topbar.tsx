@@ -1,8 +1,15 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, User, Crown } from "lucide-react";
+import { Bell, Crown, LogOut, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 
 const pageTitles: Record<string, string> = {
@@ -21,15 +28,17 @@ const pageTitles: Record<string, string> = {
 
 export function Topbar({ action }: { action?: React.ReactNode }) {
   const pathname = usePathname();
-  const { user, isAdmin, barbearia } = useAuth();
+  const { user, isAdmin, barbearia, logout } = useAuth();
 
   const title = pageTitles[pathname] || "Dashboard";
   const displayTitle = pathname === "/dashboard" && barbearia 
     ? `Dashboard - ${barbearia.nome}` 
     : title;
 
+  const planoAtual = "Free";
+
   return (
-    <header className="sticky top-0 z-20 h-14 md:h-16 bg-card border-b border-border px-3 md:px-6 flex items-center justify-between">
+    <header className="sticky top-0 z-20 h-14 md:h-16 bg-card px-3 md:px-6 flex items-center justify-between">
       <div className="flex items-center gap-2 md:gap-4">
         <h1 className="text-base md:text-xl font-semibold text-foreground truncate max-w-[150px] md:max-w-none">{displayTitle}</h1>
       </div>
@@ -41,14 +50,43 @@ export function Topbar({ action }: { action?: React.ReactNode }) {
           <Bell className="h-5 w-5" />
         </Button>
 
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center">
-            {isAdmin ? <Crown className="h-4 w-4 text-primary" /> : <User className="h-4 w-4 text-primary" />}
-          </div>
-          <span className="text-sm font-medium hidden md:inline">
-            {user?.nome}
-          </span>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="flex items-center gap-2 px-2 py-1.5 h-auto">
+              <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center">
+                {isAdmin ? <Crown className="h-4 w-4 text-primary" /> : <User className="h-4 w-4 text-primary" />}
+              </div>
+              <div className="hidden md:flex flex-col items-start">
+                <span className="text-sm font-medium text-foreground">{user?.nome}</span>
+                <span className="text-xs text-muted-foreground">{planoAtual}</span>
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem className="md:hidden">
+              <span className="text-sm font-medium">{user?.nome}</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="md:hidden" />
+            <DropdownMenuItem>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Configurações</span>
+            </DropdownMenuItem>
+            {isAdmin && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-accent">
+                  <Crown className="mr-2 h-4 w-4" />
+                  <span>Upgrade Pro</span>
+                </DropdownMenuItem>
+              </>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={logout} className="text-destructive">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Sair</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
