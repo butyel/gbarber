@@ -14,12 +14,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Settings, Loader2, MessageCircle, Palette, Upload, Camera } from "lucide-react";
 
 const PALETAS = [
-  { id: "dourado", nome: "Dourado Clássico", primary: "#212121", accent: "#CE9B65", background: "#FFFBEF" },
-  { id: "preto", nome: "Preto Elegante", primary: "#1a1a1a", accent: "#c0a062", background: "#f5f5f5" },
-  { id: "azul", nome: "Azul Profissional", primary: "#1e3a8a", accent: "#3b82f6", background: "#f0f9ff" },
-  { id: "verde", nome: "Verde Natureza", primary: "#14532d", accent: "#22c55e", background: "#f0fdf4" },
-  { id: "vinho", nome: "Vinho Noblesse", primary: "#74171c", accent: "#dc2626", background: "#fef2f2" },
-  { id: "grafite", nome: "Grafite Moderno", primary: "#374151", accent: "#6b7280", background: "#f9fafb" },
+  { id: "dourado", nome: "Dourado Clássico", primary: "#1a1a1a", accent: "#D4AF37", background: "#FAF8F5" },
+  { id: "vip", nome: "VIP Gold", primary: "#1F1F1F", accent: "#FFD700", background: "#FFFEF5" },
+  { id: "preto", nome: "Preto Elegante", primary: "#0A0A0A", accent: "#C0C0C0", background: "#F5F5F5" },
+  { id: "azul", nome: "Azul Night", primary: "#0F172A", accent: "#06B6D4", background: "#F0F9FF" },
+  { id: "vinho", nome: "Vinho Noblesse", primary: "#3D0000", accent: "#B91C1C", background: "#FEF2F2" },
+  { id: "esmeralda", nome: "Esmeralda", primary: "#064E3B", accent: "#10B981", background: "#ECFDF5" },
+  { id: "royal", nome: "Royal Purple", primary: "#2E1065", accent: "#8B5CF6", background: "#FAF5FF" },
+  { id: "rose", nome: "Rose Gold", primary: "#2D2D2D", accent: "#F472B6", background: "#FDF2F8" },
+  { id: "grafite", nome: "Grafite Moderno", primary: "#1F2937", accent: "#6366F1", background: "#F3F4F6" },
 ];
 
 export default function ConfiguracoesPage() {

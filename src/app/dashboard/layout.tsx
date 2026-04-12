@@ -4,11 +4,13 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Suspense, useEffect, useState } from "react";
+import { useTheme } from "@/hooks/use-theme";
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  useTheme();
 
   useEffect(() => {
     if (!loading && !user) {
