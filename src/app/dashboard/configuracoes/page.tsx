@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "@/lib/firebase";
+import { db, storage, getStorage } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -52,23 +52,36 @@ export default function ConfiguracoesPage() {
   }, [barbearia, user]);
 
   const uploadImage = async (file: File, path: string) => {
-    if (!storage) return "";
-    const storageRef = ref(storage, path);
-    await uploadBytes(storageRef, file);
-    return await getDownloadURL(storageRef);
+    try {
+      const storageInstance = getStorage();
+      if (!storageInstance) {
+        console.error("Storage não inicializado");
+        throw new Error("Storage não disponível");
+      }
+      const storageRef = ref(storageInstance, path);
+      await uploadBytes(storageRef, file);
+      return await getDownloadURL(storageRef);
+    } catch (error) {
+      console.error("Erro no upload:", error);
+      throw error;
+    }
   };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user || !db) return;
+    if (!file || !user || !db) {
+      toast({ variant: "destructive", title: "Erro", description: "Usuário não encontrado" });
+      return;
+    }
     setLoading(true);
     try {
       const url = await uploadImage(file, `barbearias/${user.id}/logo`);
-      setLogoUrl(url);
       await updateDoc(doc(db, "barbearias", user.id), { logo: url });
-      toast({ title: "Logo atualizada!" });
+      setLogoUrl(url);
+      toast({ title: "Logo atualizada com sucesso!" });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Erro", description: error.message });
+      console.error("Erro ao enviar logo:", error);
+      toast({ variant: "destructive", title: "Erro ao enviar logo", description: error.message });
     } finally {
       setLoading(false);
     }
@@ -76,22 +89,29 @@ export default function ConfiguracoesPage() {
 
   const handleFotoPerfilUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user || !db) return;
+    if (!file || !user || !db) {
+      toast({ variant: "destructive", title: "Erro", description: "Usuário não encontrado" });
+      return;
+    }
     setLoading(true);
     try {
       const url = await uploadImage(file, `users/${user.id}/fotoPerfil`);
-      setFotoPerfilUrl(url);
       await updateDoc(doc(db, "users", user.id), { fotoPerfil: url });
+      setFotoPerfilUrl(url);
       toast({ title: "Foto de perfil atualizada!" });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Erro", description: error.message });
+      console.error("Erro ao enviar foto:", error);
+      toast({ variant: "destructive", title: "Erro ao enviar foto", description: error.message });
     } finally {
       setLoading(false);
     }
   };
 
   const handlePaletaChange = async (novaPaleta: string) => {
-    if (!user || !db) return;
+    if (!user || !db) {
+      toast({ variant: "destructive", title: "Erro", description: "Usuário não encontrado" });
+      return;
+    }
     const paletaSel = PALETAS.find(p => p.id === novaPaleta);
     if (!paletaSel) return;
     setSaving(true);
@@ -105,11 +125,13 @@ export default function ConfiguracoesPage() {
         }
       });
       setPaleta(novaPaleta);
-      if (typeof window !== "undefined") {
-        document.documentElement.setAttribute("data-theme", novaPaleta);
-      }
+      document.documentElement.setAttribute("data-theme", novaPaleta);
+      document.documentElement.style.setProperty("--color-primary", paletaSel.primary);
+      document.documentElement.style.setProperty("--color-accent", paletaSel.accent);
+      document.documentElement.style.setProperty("--color-background", paletaSel.background);
       toast({ title: "Paleta alterada!" });
     } catch (error: any) {
+      console.error("Erro ao alterar paleta:", error);
       toast({ variant: "destructive", title: "Erro", description: error.message });
     } finally {
       setSaving(false);
