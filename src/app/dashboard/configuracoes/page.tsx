@@ -23,6 +23,7 @@ const PALETAS = [
   { id: "royal", nome: "Royal Purple", primary: "#2E1065", accent: "#8B5CF6", background: "#FAF5FF" },
   { id: "rose", nome: "Rose Gold", primary: "#2D2D2D", accent: "#F472B6", background: "#FDF2F8" },
   { id: "grafite", nome: "Grafite Moderno", primary: "#1F2937", accent: "#6366F1", background: "#F3F4F6" },
+  { id: "premium", nome: "🌿 Premium Verde", primary: "#111410", accent: "#C9A84C", background: "#F2EFE8" },
 ];
 
 export default function ConfiguracoesPage() {
@@ -91,7 +92,6 @@ export default function ConfiguracoesPage() {
 
   const handlePaletaChange = async (novaPaleta: string) => {
     if (!user || !db) return;
-    setPaleta(novaPaleta);
     const paletaSel = PALETAS.find(p => p.id === novaPaleta);
     if (!paletaSel) return;
     setSaving(true);
@@ -104,6 +104,27 @@ export default function ConfiguracoesPage() {
           background: paletaSel.background
         }
       });
+      setPaleta(novaPaleta);
+      if (typeof window !== "undefined") {
+        const root = document.documentElement;
+        root.style.setProperty("--color-primary", paletaSel.primary);
+        root.style.setProperty("--color-accent", paletaSel.accent);
+        root.style.setProperty("--color-background", paletaSel.background);
+        root.style.setProperty("--color-card", paletaSel.background);
+        root.style.setProperty("--color-popover", paletaSel.background);
+        root.style.setProperty("--color-foreground", paletaSel.primary);
+        root.style.setProperty("--color-card-foreground", paletaSel.primary);
+        root.style.setProperty("--color-popover-foreground", paletaSel.primary);
+        root.style.setProperty("--color-primary-foreground", paletaSel.accent);
+        root.style.setProperty("--color-secondary", paletaSel.accent);
+        root.style.setProperty("--color-secondary-foreground", paletaSel.primary);
+        root.style.setProperty("--color-muted", paletaSel.accent + "30");
+        root.style.setProperty("--color-muted-foreground", paletaSel.primary);
+        root.style.setProperty("--color-accent-foreground", paletaSel.primary);
+        root.style.setProperty("--color-border", paletaSel.accent);
+        root.style.setProperty("--color-input", paletaSel.accent);
+        root.style.setProperty("--color-ring", paletaSel.accent);
+      }
       toast({ title: "Paleta alterada!" });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erro", description: error.message });
