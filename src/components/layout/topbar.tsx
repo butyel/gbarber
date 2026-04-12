@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Bell, Crown, LogOut, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,7 @@ const pageTitles: Record<string, string> = {
 
 export function Topbar({ action }: { action?: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, isAdmin, barbearia, logout } = useAuth();
 
   const title = pageTitles[pathname] || "Dashboard";
@@ -46,7 +48,7 @@ export function Topbar({ action }: { action?: React.ReactNode }) {
       <div className="flex items-center gap-2 md:gap-3">
         {action}
         
-        <Button variant="ghost" size="icon" className="hidden sm:flex">
+        <Button variant="ghost" size="icon" className="hidden sm:flex" onClick={() => router.push("/dashboard/alertas")}>
           <Bell className="h-5 w-5" />
         </Button>
 

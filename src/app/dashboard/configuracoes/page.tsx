@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,7 +11,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Loader2, MessageCircle } from "lucide-react";
+import { Settings, Loader2, MessageCircle, Palette, Upload, Camera } from "lucide-react";
+
+const PALETAS = [
+  { id: "dourado", nome: "Dourado Clássico", primary: "#212121", accent: "#CE9B65", background: "#FFFBEF" },
+  { id: "preto", nome: "Preto Elegante", primary: "#1a1a1a", accent: "#c0a062", background: "#f5f5f5" },
+  { id: "azul", nome: "Azul Profissional", primary: "#1e3a8a", accent: "#3b82f6", background: "#f0f9ff" },
+  { id: "verde", nome: "Verde Natureza", primary: "#14532d", accent: "#22c55e", background: "#f0fdf4" },
+  { id: "vinho", nome: "Vinho Noblesse", primary: "#74171c", accent: "#dc2626", background: "#fef2f2" },
+  { id: "grafite", nome: "Grafite Moderno", primary: "#374151", accent: "#6b7280", background: "#f9fafb" },
+];
 
 export default function ConfiguracoesPage() {
   const { user, barbearia } = useAuth();
@@ -19,11 +29,85 @@ export default function ConfiguracoesPage() {
   const [saving, setSaving] = useState(false);
   const [nomeBarbearia, setNomeBarbearia] = useState("");
   const [nomeUsuario, setNomeUsuario] = useState("");
+  const [paleta, setPaleta] = useState(barbearia?.paleta || "dourado");
+  const [logoUrl, setLogoUrl] = useState(barbearia?.logo || "");
+  const [fotoPerfilUrl, setFotoPerfilUrl] = useState(user?.fotoPerfil || "");
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const fotoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (barbearia) setNomeBarbearia(barbearia.nome);
-    if (user) setNomeUsuario(user.nome);
+    if (barbearia) {
+      setNomeBarbearia(barbearia.nome);
+      setPaleta(barbearia.paleta || "dourado");
+      setLogoUrl(barbearia.logo || "");
+    }
+    if (user) {
+      setNomeUsuario(user.nome);
+      setFotoPerfilUrl(user.fotoPerfil || "");
+    }
   }, [barbearia, user]);
+
+  const uploadImage = async (file: File, path: string) => {
+    if (!storage) return "";
+    const storageRef = ref(storage, path);
+    await uploadBytes(storageRef, file);
+    return await getDownloadURL(storageRef);
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !db) return;
+    setLoading(true);
+    try {
+      const url = await uploadImage(file, `barbearias/${user.id}/logo`);
+      setLogoUrl(url);
+      await updateDoc(doc(db, "barbearias", user.id), { logo: url });
+      toast({ title: "Logo atualizada!" });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Erro", description: error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFotoPerfilUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !db) return;
+    setLoading(true);
+    try {
+      const url = await uploadImage(file, `users/${user.id}/fotoPerfil`);
+      setFotoPerfilUrl(url);
+      await updateDoc(doc(db, "users", user.id), { fotoPerfil: url });
+      toast({ title: "Foto de perfil atualizada!" });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Erro", description: error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePaletaChange = async (novaPaleta: string) => {
+    if (!user || !db) return;
+    setPaleta(novaPaleta);
+    const paletaSel = PALETAS.find(p => p.id === novaPaleta);
+    if (!paletaSel) return;
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, "barbearias", user.id), {
+        paleta: novaPaleta,
+        cores: {
+          primary: paletaSel.primary,
+          accent: paletaSel.accent,
+          background: paletaSel.background
+        }
+      });
+      toast({ title: "Paleta alterada!" });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Erro", description: error.message });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!user || !db) return;
@@ -84,6 +168,111 @@ export default function ConfiguracoesPage() {
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Salvar Alterações
             </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Paleta de Cores
+            </CardTitle>
+            <CardDescription>Escolha a paleta de cores do sistema</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+              {PALETAS.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => handlePaletaChange(p.id)}
+                  disabled={saving}
+                  className={`p-3 rounded-lg border-2 transition-all ${
+                    paleta === p.id ? "border-accent ring-2 ring-accent/30" : "border-border hover:border-accent/50"
+                  }`}
+                >
+                  <div className="flex flex-col gap-1">
+                    <div className="flex gap-1 justify-center">
+                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: p.primary }} />
+                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: p.accent }} />
+                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: p.background }} />
+                    </div>
+                    <span className="text-xs font-medium mt-1">{p.nome}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Logo da Barbearia
+            </CardTitle>
+            <CardDescription>Adicione o logo que aparece na sidebar</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                ) : (
+                  <Upload className="h-8 w-8 text-muted-foreground" />
+                )}
+              </div>
+              <div>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+                <Button variant="outline" onClick={() => logoInputRef.current?.click()} disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Upload className="mr-2 h-4 w-4" />
+                  Enviar Logo
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">PNG ou JPG, max 2MB</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Foto de Perfil
+            </CardTitle>
+            <CardDescription>Sua foto de perfil nos atendimentos</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center overflow-hidden border">
+                {fotoPerfilUrl ? (
+                  <img src={fotoPerfilUrl} alt="Foto" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera className="h-8 w-8 text-muted-foreground" />
+                )}
+              </div>
+              <div>
+                <input
+                  ref={fotoInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFotoPerfilUpload}
+                  className="hidden"
+                />
+                <Button variant="outline" onClick={() => fotoInputRef.current?.click()} disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Camera className="mr-2 h-4 w-4" />
+                  Enviar Foto
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">PNG ou JPG, max 2MB</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

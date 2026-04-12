@@ -4,6 +4,7 @@ export interface User {
   nome: string;
   createdAt: Date;
   plano: "free" | "pro" | "premium";
+  fotoPerfil?: string;
 }
 
 export interface Barbearia {
@@ -11,6 +12,13 @@ export interface Barbearia {
   nome: string;
   plano: "free" | "pro" | "premium";
   createdAt: Date;
+  logo?: string;
+  paleta?: string;
+  cores?: {
+    primary: string;
+    accent: string;
+    background: string;
+  };
 }
 
 export interface Cliente {

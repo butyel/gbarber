@@ -61,6 +61,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 nome: barbData.nome || "Minha Barbearia",
                 plano: barbData.plano || "free",
                 createdAt: barbData.createdAt?.toDate() || new Date(),
+                logo: barbData.logo,
+                paleta: barbData.paleta || "dourado",
+                cores: barbData.cores,
               });
             } else {
               await setDoc(doc(db, "barbearias", firebaseUser.uid), {
@@ -107,6 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               nome: fallbackName,
               plano: "free",
               createdAt: new Date(),
+              paleta: "dourado",
             });
           }
         } catch (error) {
