@@ -33,11 +33,11 @@ body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: 'Inter', system-ui, sans-serif;
-  cursor: url('/custom-cursor.cur'), auto;
+  cursor: url('/custom-cursor.cur') 0 0, auto;
 }
 
 a, button, [role="button"] {
-  cursor: url('/custom-cursor.cur'), pointer;
+  cursor: url('/custom-cursor.cur') 0 0, pointer;
 }
 
 * {
