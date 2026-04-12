@@ -3,43 +3,25 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
-const DEFAULT_CORES = {
-  primary: "#212121",
-  accent: "#CE9B65",
-  background: "#FFFBEF",
-};
-
 export function useTheme() {
   const { barbearia } = useAuth();
 
-  const aplicarCores = (cores: typeof DEFAULT_CORES) => {
+  useEffect(() => {
     if (typeof document === "undefined") return;
     
-    const root = document.documentElement;
-    root.style.setProperty("--color-primary", cores.primary);
-    root.style.setProperty("--color-accent", cores.accent);
-    root.style.setProperty("--color-background", cores.background);
-    root.style.setProperty("--color-card", cores.background);
-    root.style.setProperty("--color-popover", cores.background);
-    root.style.setProperty("--color-foreground", cores.primary);
-    root.style.setProperty("--color-card-foreground", cores.primary);
-    root.style.setProperty("--color-popover-foreground", cores.primary);
-    root.style.setProperty("--color-primary-foreground", cores.accent);
-    root.style.setProperty("--color-secondary", cores.accent);
-    root.style.setProperty("--color-secondary-foreground", cores.primary);
-    root.style.setProperty("--color-muted", cores.accent + "30");
-    root.style.setProperty("--color-muted-foreground", cores.primary);
-    root.style.setProperty("--color-accent-foreground", cores.primary);
-    root.style.setProperty("--color-border", cores.accent);
-    root.style.setProperty("--color-input", cores.accent);
-    root.style.setProperty("--color-ring", cores.accent);
-  };
-
-  useEffect(() => {
-    if (!barbearia?.cores) {
-      aplicarCores(DEFAULT_CORES);
-      return;
+    const paleta = barbearia?.paleta || "dourado";
+    document.documentElement.setAttribute("data-theme", paleta);
+    
+    if (barbearia?.cores) {
+      const root = document.documentElement;
+      root.style.setProperty("--color-primary", barbearia.cores.primary);
+      root.style.setProperty("--color-accent", barbearia.cores.accent);
+      root.style.setProperty("--color-background", barbearia.cores.background);
+      root.style.setProperty("--color-foreground", barbearia.cores.primary);
+      root.style.setProperty("--color-card", barbearia.cores.background);
+      root.style.setProperty("--color-popover", barbearia.cores.background);
+      root.style.setProperty("--color-card-foreground", barbearia.cores.primary);
+      root.style.setProperty("--color-popover-foreground", barbearia.cores.primary);
     }
-    aplicarCores(barbearia.cores);
-  }, [barbearia?.cores]);
+  }, [barbearia?.paleta, barbearia?.cores]);
 }

@@ -106,24 +106,7 @@ export default function ConfiguracoesPage() {
       });
       setPaleta(novaPaleta);
       if (typeof window !== "undefined") {
-        const root = document.documentElement;
-        root.style.setProperty("--color-primary", paletaSel.primary);
-        root.style.setProperty("--color-accent", paletaSel.accent);
-        root.style.setProperty("--color-background", paletaSel.background);
-        root.style.setProperty("--color-card", paletaSel.background);
-        root.style.setProperty("--color-popover", paletaSel.background);
-        root.style.setProperty("--color-foreground", paletaSel.primary);
-        root.style.setProperty("--color-card-foreground", paletaSel.primary);
-        root.style.setProperty("--color-popover-foreground", paletaSel.primary);
-        root.style.setProperty("--color-primary-foreground", paletaSel.accent);
-        root.style.setProperty("--color-secondary", paletaSel.accent);
-        root.style.setProperty("--color-secondary-foreground", paletaSel.primary);
-        root.style.setProperty("--color-muted", paletaSel.accent + "30");
-        root.style.setProperty("--color-muted-foreground", paletaSel.primary);
-        root.style.setProperty("--color-accent-foreground", paletaSel.primary);
-        root.style.setProperty("--color-border", paletaSel.accent);
-        root.style.setProperty("--color-input", paletaSel.accent);
-        root.style.setProperty("--color-ring", paletaSel.accent);
+        document.documentElement.setAttribute("data-theme", novaPaleta);
       }
       toast({ title: "Paleta alterada!" });
     } catch (error: any) {
