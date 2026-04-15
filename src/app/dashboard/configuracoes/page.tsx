@@ -45,6 +45,11 @@ export default function ConfiguracoesPage() {
       return;
     }
 
+    if (!supabase) {
+      toast({ variant: "destructive", title: "Erro", description: "Supabase não está configurado" });
+      return;
+    }
+
     setUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
@@ -73,6 +78,11 @@ export default function ConfiguracoesPage() {
 
   const handleRemoveFoto = async () => {
     if (!user || !fotoPerfil) return;
+
+    if (!supabase) {
+      toast({ variant: "destructive", title: "Erro", description: "Supabase não está configurado" });
+      return;
+    }
 
     setUploading(true);
     try {
