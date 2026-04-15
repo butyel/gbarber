@@ -46,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               nome: userData.nome || "Usuário",
               createdAt: userData.createdAt?.toDate() || new Date(),
               plano: userData.plano || "free",
+              fotoPerfil: userData.fotoPerfil,
             });
 
             // Check if admin
@@ -95,6 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               nome: fallbackName,
               createdAt: new Date(),
               plano: "free",
+              fotoPerfil: undefined,
             });
 
             setIsAdmin(firebaseUser.email === "admin@gbarber.com");
@@ -122,6 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             nome: firebaseUser.email?.split("@")[0] || "Usuário",
             createdAt: new Date(),
             plano: "free",
+            fotoPerfil: undefined,
           });
           setIsAdmin(firebaseUser.email === "admin@gbarber.com");
         } finally {

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { ref, uploadBytes, deleteObject, getDownloadURL } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,19 +11,80 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Loader2, MessageCircle } from "lucide-react";
+import { Settings, Loader2, MessageCircle, Camera, X, User } from "lucide-react";
 
 export default function ConfiguracoesPage() {
   const { user, barbearia } = useAuth();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [nomeBarbearia, setNomeBarbearia] = useState("");
   const [nomeUsuario, setNomeUsuario] = useState("");
+  const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (barbearia) setNomeBarbearia(barbearia.nome);
-    if (user) setNomeUsuario(user.nome);
+    if (user) {
+      setNomeUsuario(user.nome);
+      setFotoPerfil(user.fotoPerfil || null);
+    }
   }, [barbearia, user]);
+
+  const handleFotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({ variant: "destructive", title: "Erro", description: "Selecione uma imagem" });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "Erro", description: "A imagem deve ter no máximo 5MB" });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      if (fotoPerfil) {
+        const oldRef = ref(storage, fotoPerfil);
+        try {
+          await deleteObject(oldRef);
+        } catch {}
+      }
+
+      const fileName = `fotos-perfil/${user.id}/profile_${Date.now()}`;
+      const storageRef = ref(storage, fileName);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      await updateDoc(doc(db, "users", user.id), { fotoPerfil: downloadURL });
+      setFotoPerfil(downloadURL);
+      toast({ title: "Foto atualizada com sucesso!" });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Erro", description: error.message });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveFoto = async () => {
+    if (!user || !fotoPerfil) return;
+
+    setUploading(true);
+    try {
+      const storageRef = ref(storage, fotoPerfil);
+      await deleteObject(storageRef);
+      await updateDoc(doc(db, "users", user.id), { fotoPerfil: null });
+      setFotoPerfil(null);
+      toast({ title: "Foto removida" });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Erro", description: error.message });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!user || !db) return;
@@ -47,11 +109,59 @@ export default function ConfiguracoesPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
-              Configurações da Barbearia
+              Configurações da Conta
             </CardTitle>
-            <CardDescription>Gerencie as informações da sua barbearia</CardDescription>
+            <CardDescription>Gerencie suas informações pessoais</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative">
+                <div className="w-32 h-32 rounded-full overflow-hidden bg-[#2D4A35] flex items-center justify-center border-2 border-[#C9A84C]/30">
+                  {fotoPerfil ? (
+                    <img src={fotoPerfil} alt="Foto de perfil" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-16 h-16 text-[#C9A84C]/50" />
+                  )}
+                </div>
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 text-[#C9A84C] animate-spin" />
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="border-[#C9A84C]/50 text-[#C9A84C] hover:bg-[#C9A84C]/10"
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  {fotoPerfil ? "Alterar" : "Adicionar"}
+                </Button>
+                {fotoPerfil && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRemoveFoto}
+                    disabled={uploading}
+                    className="border-red-500/50 text-red-500 hover:bg-red-500/10"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Remover
+                  </Button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFotoChange}
+                  className="hidden"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label>Nome da Barbearia</Label>
               <Input 
