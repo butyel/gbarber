@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { doc, updateDoc } from "firebase/firestore";
-import { ref, uploadBytes, deleteObject, getDownloadURL } from "firebase/storage";
-import { db, storage } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -47,28 +47,25 @@ export default function ConfiguracoesPage() {
 
     setUploading(true);
     try {
-      if (fotoPerfil) {
-        try {
-          const oldRef = ref(storage, fotoPerfil);
-          await deleteObject(oldRef);
-        } catch {}
-      }
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/profile_${Date.now()}.${fileExt}`;
 
-      const fileName = `fotos-perfil/${user.id}/profile_${Date.now()}.${file.name.split('.').pop()}`;
-      const storageRef = ref(storage, fileName);
-      const snapshot = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
+      const { error: uploadError } = await supabase.storage
+        .from('fotos-perfil')
+        .upload(fileName, file, { upsert: true });
 
-      await updateDoc(doc(db, "users", user.id), { fotoPerfil: downloadURL });
-      setFotoPerfil(downloadURL);
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('fotos-perfil')
+        .getPublicUrl(fileName);
+
+      await updateDoc(doc(db, "users", user.id), { fotoPerfil: data.publicUrl });
+      setFotoPerfil(data.publicUrl);
       toast({ title: "Foto atualizada com sucesso!" });
     } catch (error: any) {
       console.error("Erro ao fazer upload:", error);
-      if (error.code === "storage/unauthorized") {
-        toast({ variant: "destructive", title: "Erro de permissão", description: "Configure o Firebase Storage Rules para permitir uploads" });
-      } else {
-        toast({ variant: "destructive", title: "Erro", description: error.message || "Não foi possível fazer o upload da imagem" });
-      }
+      toast({ variant: "destructive", title: "Erro", description: error.message || "Não foi possível fazer o upload da imagem" });
     } finally {
       setUploading(false);
     }
@@ -79,8 +76,10 @@ export default function ConfiguracoesPage() {
 
     setUploading(true);
     try {
-      const storageRef = ref(storage, fotoPerfil);
-      await deleteObject(storageRef);
+      const fileName = fotoPerfil.split('/fotos-perfil/')[1];
+      if (fileName) {
+        await supabase.storage.from('fotos-perfil').remove([fileName]);
+      }
       await updateDoc(doc(db, "users", user.id), { fotoPerfil: null });
       setFotoPerfil(null);
       toast({ title: "Foto removida" });
