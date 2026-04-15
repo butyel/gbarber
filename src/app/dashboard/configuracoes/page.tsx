@@ -48,22 +48,27 @@ export default function ConfiguracoesPage() {
     setUploading(true);
     try {
       if (fotoPerfil) {
-        const oldRef = ref(storage, fotoPerfil);
         try {
+          const oldRef = ref(storage, fotoPerfil);
           await deleteObject(oldRef);
         } catch {}
       }
 
-      const fileName = `fotos-perfil/${user.id}/profile_${Date.now()}`;
+      const fileName = `fotos-perfil/${user.id}/profile_${Date.now()}.${file.name.split('.').pop()}`;
       const storageRef = ref(storage, fileName);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
 
       await updateDoc(doc(db, "users", user.id), { fotoPerfil: downloadURL });
       setFotoPerfil(downloadURL);
       toast({ title: "Foto atualizada com sucesso!" });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Erro", description: error.message });
+      console.error("Erro ao fazer upload:", error);
+      if (error.code === "storage/unauthorized") {
+        toast({ variant: "destructive", title: "Erro de permissão", description: "Configure o Firebase Storage Rules para permitir uploads" });
+      } else {
+        toast({ variant: "destructive", title: "Erro", description: error.message || "Não foi possível fazer o upload da imagem" });
+      }
     } finally {
       setUploading(false);
     }
