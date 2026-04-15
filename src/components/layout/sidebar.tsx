@@ -63,12 +63,13 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-primary text-primary-foreground flex flex-col transition-all duration-300",
+          "fixed left-0 top-0 z-40 h-screen bg-primary text-primary-foreground flex flex-col transition-all duration-300 border-r-2 border-r-[#C9A84C]/50",
           isCollapsed ? "w-16" : "w-64",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
+        style={{ boxShadow: "inset -4px 0 20px rgba(201, 168, 76, 0.1)" }}
       >
-        <div className="flex items-center justify-between p-4 border-b border-secondary">
+        <div className="flex items-center justify-between p-4 border-b border-[#C9A84C]/30">
           {mobileOpen && (
             <Button
               variant="ghost"
@@ -81,15 +82,15 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
           )}
           {!isCollapsed && (
             <div>
-              <h1 className="text-xl font-bold text-accent">GBarber</h1>
-              <p className="text-xs text-muted-foreground mt-1 truncate max-w-[150px]">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-[#C9A84C] via-[#D4AF37] to-[#C9A84C] bg-clip-text text-transparent">GBarber</h1>
+              <p className="text-xs text-[#C9A84C]/70 mt-1 truncate max-w-[150px]">
                 {isAdmin ? "Painel Admin" : user?.nome || "Minha Barbearia"}
               </p>
             </div>
           )}
           {isCollapsed && (
             <div className="flex-1 flex justify-center">
-              <span className="text-accent font-bold text-lg">GB</span>
+              <span className="font-bold text-lg bg-gradient-to-r from-[#C9A84C] via-[#D4AF37] to-[#C9A84C] bg-clip-text text-transparent">GB</span>
             </div>
           )}
           <Button
@@ -127,7 +128,7 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
           })}
         </nav>
 
-        <div className="p-2 border-t border-secondary">
+        <div className="p-2 border-t border-[#C9A84C]/30">
           <Button
             variant="ghost"
             className={cn(
