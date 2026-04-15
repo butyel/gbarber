@@ -114,8 +114,8 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
                 className={cn(
                   "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-accent text-primary"
-                    : "text-muted-foreground hover:bg-secondary hover:text-primary-foreground",
+                    ? "bg-[#C9A84C] text-[#1A2E21] font-semibold"
+                    : "text-[#C9A84C]/70 hover:bg-[#C9A84C]/10 hover:text-[#C9A84C]",
                   isCollapsed && "justify-center"
                 )}
                 onClick={() => setMobileOpen(false)}
