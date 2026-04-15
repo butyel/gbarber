@@ -55,7 +55,7 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
       <Button
         variant="ghost"
         size="icon"
-        className="md:hidden fixed top-4 left-4 z-50 bg-primary text-primary-foreground"
+        className="md:hidden fixed top-4 left-4 z-50 bg-[#1A2E21] text-[#C9A84C]"
         onClick={() => setMobileOpen(true)}
       >
         <Menu className="h-6 w-6" />
@@ -63,11 +63,11 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-primary text-primary-foreground flex flex-col transition-all duration-300 border-r-2 border-r-[#C9A84C]/50",
+          "fixed left-0 top-0 z-40 h-screen bg-[#1A2E21] text-[#C9A84C] flex flex-col transition-all duration-300 border-r-2 border-r-[#C9A84C]/30",
           isCollapsed ? "w-16" : "w-64",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
-        style={{ boxShadow: "inset -4px 0 20px rgba(201, 168, 76, 0.1)" }}
+        style={{ boxShadow: "inset -4px 0 20px rgba(201, 168, 76, 0.15)" }}
       >
         <div className="flex items-center justify-between p-4 border-b border-[#C9A84C]/30">
           {mobileOpen && (
