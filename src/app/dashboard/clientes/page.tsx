@@ -12,9 +12,10 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Pencil, Trash2, Search, Phone, Mail, User } from "lucide-react";
-import type { Cliente } from "@/types";
+import { Plus, Pencil, Trash2, Search, Phone, Mail, User, Cake, CreditCard, Download } from "lucide-react";
+import type { Cliente, PlanoCliente } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ClientesPage() {
   const { user } = useAuth();
@@ -30,13 +31,22 @@ export default function ClientesPage() {
     nome: "",
     telefone: "",
     email: "",
+    dataNascimento: "",
+    planoId: "",
     observacoes: "",
   });
+  const [planos, setPlanos] = useState<PlanoCliente[]>([]);
 
   useEffect(() => {
     if (!user || !db) return;
     fetchData();
+    fetchPlanos();
   }, [user, db]);
+
+  const fetchPlanos = async () => {
+    const snap = await getDocs(collection(db, `barbearias/${user!.id}/planos_clientes`));
+    setPlanos(snap.docs.map(d => ({ id: d.id, ...d.data() })) as PlanoCliente[]);
+  };
 
   const fetchData = async () => {
     try {
@@ -66,6 +76,8 @@ export default function ClientesPage() {
           nome: formData.nome,
           telefone: formData.telefone,
           email: formData.email,
+          dataNascimento: formData.dataNascimento,
+          planoId: formData.planoId,
           observacoes: formData.observacoes,
         });
         toast({ title: "Cliente atualizado!" });
@@ -74,13 +86,15 @@ export default function ClientesPage() {
           nome: formData.nome,
           telefone: formData.telefone,
           email: formData.email,
+          dataNascimento: formData.dataNascimento,
+          planoId: formData.planoId,
           observacoes: formData.observacoes,
           createdAt: serverTimestamp(),
         });
         toast({ title: "Cliente adicionado!" });
       }
       setIsModalOpen(false);
-      setFormData({ nome: "", telefone: "", email: "", observacoes: "" });
+      setFormData({ nome: "", telefone: "", email: "", dataNascimento: "", planoId: "", observacoes: "" });
       setEditingId(null);
       fetchData();
     } catch (error: any) {
@@ -95,6 +109,8 @@ export default function ClientesPage() {
       nome: cliente.nome,
       telefone: cliente.telefone || "",
       email: cliente.email || "",
+      dataNascimento: cliente.dataNascimento || "",
+      planoId: cliente.planoId || "",
       observacoes: cliente.observacoes || "",
     });
     setEditingId(cliente.id);
@@ -112,6 +128,40 @@ export default function ClientesPage() {
     }
   };
 
+  const handleExportCSV = () => {
+    if (clientes.length === 0) {
+      toast({ variant: "destructive", title: "Nenhum cliente para exportar" });
+      return;
+    }
+
+    const headers = ["Nome", "Telefone", "Email", "Data de Nascimento", "Plano", "Observacoes"];
+    const rows = clientes.map(c => [
+      c.nome,
+      c.telefone || "",
+      c.email || "",
+      c.dataNascimento || "",
+      planos.find(p => p.id === c.planoId)?.nome || "Nenhum",
+      c.observacoes || ""
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+
+    const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `clientes_gbarber_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({ title: "Planilha gerada com sucesso!" });
+  };
+
   const filteredClientes = clientes.filter(c => 
     c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.telefone?.includes(searchTerm) ||
@@ -122,10 +172,16 @@ export default function ClientesPage() {
     <div className="min-h-screen">
       <Topbar 
         action={
-          <Button onClick={() => { setFormData({ nome: "", telefone: "", email: "", observacoes: "" }); setEditingId(null); setIsModalOpen(true); }}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Cliente
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleExportCSV}>
+              <Download className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Baixar Planilha</span>
+            </Button>
+            <Button onClick={() => { setFormData({ nome: "", telefone: "", email: "", dataNascimento: "", planoId: "", observacoes: "" }); setEditingId(null); setIsModalOpen(true); }}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Cliente
+            </Button>
+          </div>
         }
       />
 
@@ -155,7 +211,8 @@ export default function ClientesPage() {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Telefone</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead>Aniversário</TableHead>
+                  <TableHead>Plano</TableHead>
                   <TableHead>Observações</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
@@ -182,7 +239,22 @@ export default function ClientesPage() {
                     <TableRow key={cliente.id}>
                       <TableCell className="font-medium">{cliente.nome}</TableCell>
                       <TableCell>{cliente.telefone || "-"}</TableCell>
-                      <TableCell>{cliente.email || "-"}</TableCell>
+                      <TableCell>
+                        {cliente.dataNascimento ? (
+                          <div className="flex items-center gap-1 text-pink-600">
+                            <Cake className="h-3 w-3" />
+                            {new Date(cliente.dataNascimento + "T12:00:00").toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                          </div>
+                        ) : "-"}
+                      </TableCell>
+                      <TableCell>
+                        {cliente.planoId ? (
+                          <div className="flex items-center gap-1 text-blue-600 font-medium">
+                            <CreditCard className="h-3 w-3" />
+                            {planos.find(p => p.id === cliente.planoId)?.nome || "Plano"}
+                          </div>
+                        ) : "-"}
+                      </TableCell>
                       <TableCell className="text-muted-foreground text-sm">{cliente.observacoes || "-"}</TableCell>
                       <TableCell className="flex gap-2">
                         <Button variant="ghost" size="icon" onClick={() => handleEdit(cliente)}>
@@ -215,13 +287,42 @@ export default function ClientesPage() {
                 placeholder="Nome completo"
               />
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Telefone</Label>
+                <Input 
+                  value={formData.telefone} 
+                  onChange={(e) => setFormData({ ...formData, telefone: e.target.value })} 
+                  placeholder="(00) 00000-0000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Data de Nasc.</Label>
+                <Input 
+                  type="date"
+                  value={formData.dataNascimento} 
+                  onChange={(e) => setFormData({ ...formData, dataNascimento: e.target.value })} 
+                />
+              </div>
+            </div>
             <div className="space-y-2">
-              <Label>Telefone</Label>
-              <Input 
-                value={formData.telefone} 
-                onChange={(e) => setFormData({ ...formData, telefone: e.target.value })} 
-                placeholder="(00) 00000-0000"
-              />
+              <Label>Plano de Assinatura</Label>
+              <Select 
+                value={formData.planoId} 
+                onValueChange={(val) => setFormData({ ...formData, planoId: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um plano" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum plano</SelectItem>
+                  {planos.map(plano => (
+                    <SelectItem key={plano.id} value={plano.id}>
+                      {plano.nome} - R$ {plano.preco.toFixed(2)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Email</Label>

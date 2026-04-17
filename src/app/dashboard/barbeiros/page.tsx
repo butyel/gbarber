@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Pencil, Trash2, Loader2, Users } from "lucide-react";
 import type { Barbeiro } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { normalizePhoneNumber } from "@/lib/utils";
 
 export default function BarbeirosPage() {
   const { user } = useAuth();
@@ -30,6 +31,8 @@ export default function BarbeirosPage() {
     telefone: "",
     comissaoServico: 40,
     comissaoProduto: 15,
+    email: "",
+    senha: "",
   });
 
   useEffect(() => {
@@ -60,26 +63,31 @@ export default function BarbeirosPage() {
 
     setSubmitting(true);
     try {
+      const normalizedPhone = normalizePhoneNumber(formData.telefone);
       if (editingId) {
         await updateDoc(doc(db, `barbearias/${user.id}/barbeiros`, editingId), {
           nome: formData.nome,
-          telefone: formData.telefone,
+          telefone: normalizedPhone,
           comissaoServico: formData.comissaoServico,
           comissaoProduto: formData.comissaoProduto,
+          email: formData.email,
+          ...(formData.senha ? { senha: formData.senha } : {}),
         });
         toast({ title: "Barbeiro atualizado!" });
       } else {
         await addDoc(collection(db, `barbearias/${user.id}/barbeiros`), {
           nome: formData.nome,
-          telefone: formData.telefone,
+          telefone: normalizedPhone,
+          email: formData.email,
           comissaoServico: formData.comissaoServico,
           comissaoProduto: formData.comissaoProduto,
+          senha: formData.senha || "",
           createdAt: new Date(),
         });
-        toast({ title: "Barbeiro adicionado!" });
+        toast({ title: "Barbeiro adicionado!", description: formData.senha ? `Senha: ${formData.senha}` : undefined });
       }
       setIsModalOpen(false);
-      setFormData({ nome: "", telefone: "", comissaoServico: 40, comissaoProduto: 15 });
+      setFormData({ nome: "", telefone: "", comissaoServico: 40, comissaoProduto: 15, email: "", senha: "" });
       setEditingId(null);
       fetchData();
     } catch (error: any) {
@@ -95,6 +103,8 @@ export default function BarbeirosPage() {
       telefone: barbeiro.telefone || "",
       comissaoServico: barbeiro.comissaoServico,
       comissaoProduto: barbeiro.comissaoProduto,
+      email: barbeiro.email || "",
+      senha: "",
     });
     setEditingId(barbeiro.id);
     setIsModalOpen(true);
@@ -112,7 +122,7 @@ export default function BarbeirosPage() {
   };
 
   const openNewModal = () => {
-    setFormData({ nome: "", telefone: "", comissaoServico: 40, comissaoProduto: 15 });
+    setFormData({ nome: "", telefone: "", comissaoServico: 40, comissaoProduto: 15, email: "", senha: "" });
     setEditingId(null);
     setIsModalOpen(true);
   };
@@ -129,6 +139,27 @@ export default function BarbeirosPage() {
       />
 
       <div className="p-6 space-y-6">
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 className="font-bold text-primary">Acesso dos Barbeiros</h3>
+            <p className="text-sm text-muted-foreground">Seus barbeiros precisam deste código para logar</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <code className="bg-background px-3 py-1 rounded border font-mono font-bold text-lg">
+              {user?.id}
+            </code>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => {
+                navigator.clipboard.writeText(user?.id || "");
+                toast({ title: "Código copiado!" });
+              }}
+            >
+              Copiar
+            </Button>
+          </div>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -209,6 +240,26 @@ export default function BarbeirosPage() {
                 onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
                 placeholder="(00) 00000-0000"
               />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Email (opcional)</Label>
+                <Input 
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="barbeiro@email.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{editingId ? "Nova Senha (deixe vazio para manter)" : "Senha de Acesso"}</Label>
+                <Input 
+                  type="password"
+                  value={formData.senha}
+                  onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
+                  placeholder="Defina uma senha"
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

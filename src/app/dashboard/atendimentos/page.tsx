@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDate, formatTime } from "@/lib/utils";
-import { Plus, Search, Trash2, Loader2, RotateCcw, Eye, Pencil } from "lucide-react";
+import { Plus, Search, Trash2, Loader2, RotateCcw, Eye, Pencil, Check } from "lucide-react";
 import type { Atendimento, Barbeiro, Servico, Produto } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -170,6 +170,21 @@ export default function AtendimentosPage() {
     }
   };
 
+  const handleFinalize = async (id: string) => {
+    try {
+      await import("firebase/firestore").then(({ updateDoc, doc }) => 
+        updateDoc(doc(db, `barbearias/${user!.id}/atendimentos`, id), {
+          status: "finalizado",
+          updatedAt: new Date(),
+        })
+      );
+      toast({ title: "Atendimento finalizado!", description: "O valor foi contabilizado no faturamento." });
+      fetchData();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Erro ao finalizar" });
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Tem certeza que deseja excluir?")) return;
     try {
@@ -274,9 +289,8 @@ export default function AtendimentosPage() {
                   <TableHead>Cliente</TableHead>
                   <TableHead>Barbeiro</TableHead>
                   <TableHead>Serviço</TableHead>
-                  <TableHead>Produto</TableHead>
                   <TableHead>Valor</TableHead>
-                  <TableHead>Comissão</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -289,14 +303,12 @@ export default function AtendimentosPage() {
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                       <TableCell><Skeleton className="h-8 w-8" /></TableCell>
                     </TableRow>
                   ))
                 ) : filteredAppointments.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       Nenhum atendimento encontrado
                     </TableCell>
                   </TableRow>
@@ -307,11 +319,23 @@ export default function AtendimentosPage() {
                       <TableCell className="font-medium">{appointment.cliente}</TableCell>
                       <TableCell>{appointment.barbeiroNome}</TableCell>
                       <TableCell>{appointment.servicoNome}</TableCell>
-                      <TableCell>{appointment.produtoVendido?.nome || "-"}</TableCell>
                       <TableCell>{formatCurrency(appointment.valor + (appointment.produtoVendido?.valor || 0))}</TableCell>
-                      <TableCell>{formatCurrency(appointment.comissao)}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          appointment.status === "finalizado" ? "bg-green-100 text-green-700" : 
+                          appointment.status === "cancelado" ? "bg-red-100 text-red-700" : 
+                          "bg-blue-100 text-blue-700"
+                        }`}>
+                          {appointment.status || "agendado"}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
+                          {appointment.status !== "finalizado" && (
+                            <Button variant="ghost" size="icon" onClick={() => handleFinalize(appointment.id)} title="Finalizar e Contabilizar">
+                              <Check className="h-4 w-4 text-green-600" />
+                            </Button>
+                          )}
                           <Button variant="ghost" size="icon" onClick={() => handleViewDetails(appointment)} title="Ver detalhes">
                             <Eye className="h-4 w-4" />
                           </Button>

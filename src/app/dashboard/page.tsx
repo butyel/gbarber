@@ -10,10 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatTime } from "@/lib/utils";
-import { DollarSign, Users, Receipt, TrendingUp, TrendingDown, Plus, Wallet, Award } from "lucide-react";
+import { DollarSign, Users, Receipt, TrendingUp, TrendingDown, Plus, Wallet, Award, Cake } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import type { Atendimento } from "@/types";
 import { useRouter } from "next/navigation";
+import { format, addDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -32,6 +34,7 @@ export default function DashboardPage() {
   const [recentAppointments, setRecentAppointments] = useState<Atendimento[]>([]);
   const [faturamentoSemanal, setFaturamentoSemanal] = useState<{ dia: string; valor: number }[]>([]);
   const [atendimentosHora, setAtendimentosHora] = useState<{ hora: string; count: number }[]>([]);
+  const [aniversariantesSemana, setAniversariantesSemana] = useState<{ nome: string; data: string }[]>([]);
 
   useEffect(() => {
     if (!user || !db) return;
@@ -41,14 +44,8 @@ export default function DashboardPage() {
   const fetchData = async () => {
     try {
       const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
-      const yesterday = new Date(todayStart);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStart = new Date(yesterday);
-      yesterdayStart.setHours(0, 0, 0, 0);
-      const yesterdayEnd = new Date(yesterday);
-      yesterdayEnd.setHours(23, 59, 59, 999);
+      const todayString = format(now, "yyyy-MM-dd");
+      const yesterdayString = format(addDays(now, -1), "yyyy-MM-dd");
 
       const allAppointmentsRef = collection(db, `barbearias/${user.id}/atendimentos`);
       const allSnap = await getDocs(query(allAppointmentsRef, orderBy("createdAt", "desc")));
@@ -59,17 +56,19 @@ export default function DashboardPage() {
         createdAt: doc.data().createdAt?.toDate() || new Date(),
       })) as Atendimento[];
 
-      const todayAppointments = allAppointments.filter(a => a.createdAt >= todayStart);
-      const yesterdayAppointments = allAppointments.filter(a => 
-        a.createdAt >= yesterdayStart && a.createdAt <= yesterdayEnd
+      // Filter by the planned 'data' field, not createdAt
+      const todayAppointments = allAppointments.filter(a => a.data === todayString);
+      const todayFinalized = todayAppointments.filter(a => a.status === "finalizado");
+      const yesterdayFinalized = allAppointments.filter(a => 
+        a.data === yesterdayString && a.status === "finalizado"
       );
 
-      const faturamentoDia = todayAppointments.reduce((sum, a) => sum + a.valor, 0);
-      const comissoesDia = todayAppointments.reduce((sum, a) => sum + a.comissao, 0);
+      const faturamentoDia = todayFinalized.reduce((sum, a) => sum + a.valor, 0);
+      const comissoesDia = todayFinalized.reduce((sum, a) => sum + a.comissao, 0);
       const lucroDia = faturamentoDia - comissoesDia;
-      const count = todayAppointments.length;
+      const count = todayAppointments.length; // Count all planned for today
       
-      const yesterdayFaturamento = yesterdayAppointments.reduce((sum, a) => sum + a.valor, 0);
+      const yesterdayFaturamento = yesterdayFinalized.reduce((sum, a) => sum + a.valor, 0);
       const crescimento = yesterdayFaturamento > 0 
         ? ((faturamentoDia - yesterdayFaturamento) / yesterdayFaturamento) * 100 
         : yesterdayFaturamento === 0 && faturamentoDia > 0 ? 100 : 0;
@@ -103,25 +102,20 @@ export default function DashboardPage() {
         setTopServico({ nome: top[0], quantidade: top[1] });
       }
 
-      const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-      const semanal: { dia: string; valor: number }[] = [];
-      
-      for (let i = 6; i >= 0; i--) {
-        const dia = new Date(todayStart);
-        dia.setDate(dia.getDate() - i);
-        const diaStart = new Date(dia);
-        diaStart.setHours(0, 0, 0, 0);
-        const diaEnd = new Date(dia);
-        diaEnd.setHours(23, 59, 59, 999);
-        
-        const doDia = allAppointments.filter(a => a.createdAt >= diaStart && a.createdAt <= diaEnd);
-        const valor = doDia.reduce((sum, a) => sum + a.valor, 0);
-        
-        semanal.push({
-          dia: diasSemana[dia.getDay()],
-          valor,
-        });
-      }
+        // Calculate values for chart using the 'data' field
+        const today = new Date();
+        const semanal: { dia: string; valor: number }[] = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = addDays(today, -i);
+          const dString = format(d, "yyyy-MM-dd");
+          const doDia = allAppointments.filter(a => a.data === dString && a.status === "finalizado");
+          const valor = doDia.reduce((sum, a) => sum + a.valor, 0);
+          
+          semanal.push({
+            dia: format(d, "EEE", { locale: ptBR }),
+            valor,
+          });
+        }
       setFaturamentoSemanal(semanal);
 
       const horaCount: Record<string, number> = {};
@@ -135,6 +129,32 @@ export default function DashboardPage() {
         .map(([hora, count]) => ({ hora, count }))
         .sort((a, b) => parseInt(a.hora) - parseInt(b.hora));
       setAtendimentosHora(horaData);
+
+      // Buscar aniversariantes da semana
+      const clientesSnap = await getDocs(collection(db, `barbearias/${user.id}/clientes`));
+      const niverData: { nome: string; data: string }[] = [];
+      const hoje = new Date();
+      
+      clientesSnap.forEach(doc => {
+        const cliente = doc.data();
+        if (cliente.dataNascimento) {
+          const birthDate = new Date(cliente.dataNascimento + "T12:00:00");
+          const birthMonth = birthDate.getMonth();
+          const birthDay = birthDate.getDate();
+          
+          const thisYearBirth = new Date(hoje.getFullYear(), birthMonth, birthDay);
+          const diffTime = thisYearBirth.getTime() - hoje.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (diffDays >= 0 && diffDays <= 7) {
+            niverData.push({
+              nome: cliente.nome,
+              data: `${birthDay.toString().padStart(2, '0')}/${(birthMonth + 1).toString().padStart(2, '0')}`,
+            });
+          }
+        }
+      });
+      setAniversariantesSemana(niverData);
 
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -263,6 +283,27 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="text-xl font-bold">{topServico.nome}</div>
                 <p className="text-sm text-muted-foreground">{topServico.quantidade} atendimentos</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {aniversariantesSemana.length > 0 && (
+            <Card className="bg-[#7A3B2E]/10 border-[#7A3B2E]/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2 text-[#7A3B2E]">
+                  <Cake className="h-4 w-4" />
+                  Aniversariantes da Semana
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {aniversariantesSemana.map((niver, idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-white/50 p-2 rounded text-sm">
+                      <span className="font-medium text-[#7A3B2E] font-bold">{niver.nome}</span>
+                      <span className="text-[#7A3B2E]/80 font-bold">{niver.data}</span>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}

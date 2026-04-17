@@ -36,3 +36,7 @@ export function getToday(): string {
 export function getDateString(date: Date): string {
   return date.toISOString().split("T")[0];
 }
+
+export function normalizePhoneNumber(phone: string): string {
+  return phone.replace(/\D/g, "");
+}

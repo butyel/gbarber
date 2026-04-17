@@ -5,6 +5,7 @@ export interface User {
   createdAt: Date;
   plano: "free" | "pro" | "premium";
   fotoPerfil?: string;
+  role?: "dono" | "barbeiro";
 }
 
 export interface Barbearia {
@@ -21,12 +22,25 @@ export interface Barbearia {
   };
 }
 
+export interface PlanoCliente {
+  id: string;
+  nome: string;
+  preco: number;
+  descricao?: string;
+  createdAt: Date;
+}
+
 export interface Cliente {
   id: string;
   nome: string;
   telefone?: string;
   email?: string;
+  dataNascimento?: string;
+  planoId?: string;
   observacoes?: string;
+  fotoPerfil?: string;
+  fotosCorte?: string[];
+  pontosFidelidade?: number;
   createdAt: Date;
 }
 
@@ -34,6 +48,8 @@ export interface Barbeiro {
   id: string;
   nome: string;
   telefone?: string;
+  email?: string;
+  senha?: string;
   comissaoServico: number;
   comissaoProduto: number;
   createdAt: Date;
@@ -77,7 +93,7 @@ export interface Atendimento {
   comissao: number;
   data: string;
   hora: string;
-  status: "agendado" | "em_atendimento" | "concluido" | "cancelado";
+  status: "agendado" | "em_atendimento" | "finalizado" | "concluido" | "cancelado";
   createdAt: Date;
 }
 
@@ -89,6 +105,15 @@ export interface MovimentoEstoque {
   createdAt: Date;
 }
 
+export interface Despesa {
+  id: string;
+  nome: string;
+  valor: number;
+  categoria: "aluguel" | "luz" | "internet" | "produtos" | "manutencao" | "outros";
+  data: string;
+  createdAt: Date;
+}
+
 export interface CaixaDia {
   id: string;
   data: string;
@@ -96,6 +121,7 @@ export interface CaixaDia {
   fechamento?: number;
   totalServicos: number;
   totalProdutos: number;
+  totalDespesas: number;
   totalComissoes: number;
   lucroLiquido: number;
   fechado: boolean;

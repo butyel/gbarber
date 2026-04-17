@@ -6,13 +6,33 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Barbearias: each user owns their own
-    match /barbearias/{barbeiroId} {
-      allow read, write: if request.auth != null && request.auth.uid == barbeiroId;
+    // Barbearias: owner has full access, public can read basic info
+    match /barbearias/{ownerId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == ownerId;
       
-      // All subcollections inside a barbearia
+      // Barbeiros: allow reading for login check and scheduling
+      match /barbeiros/{barbeiroId} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.uid == ownerId;
+      }
+
+      // Atendimentos: allow public read/write for scheduling
+      match /atendimentos/{atendimentoId} {
+        allow read, write: if true;
+      }
+
+      // Clientes: allow public creation during scheduling
+      match /clientes/{clienteId} {
+        allow read: if true;
+        allow create: if true;
+        allow update, delete: if request.auth != null && request.auth.uid == ownerId;
+      }
+
+      // Other subcollections (servicos, produtos, etc)
       match /{collection}/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == barbeiroId;
+        allow read: if true; // Allow public view for scheduling
+        allow write: if request.auth != null && request.auth.uid == ownerId;
       }
     }
     

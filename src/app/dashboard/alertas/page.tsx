@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, Package, TrendingDown, DollarSign } from "lucide-react";
+import { AlertTriangle, Package, TrendingDown, DollarSign, Cake } from "lucide-react";
 import { formatCurrency, getToday } from "@/lib/utils";
 
 interface AlertaEstoque {
@@ -28,10 +28,16 @@ interface AlertaFaturamento {
   valor: number;
 }
 
+interface AlertaAniversario {
+  tipo: "aniversario";
+  cliente: string;
+  data: string;
+}
+
 export default function AlertasPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [alertas, setAlertas] = useState<(AlertaEstoque | AlertaBarbeiro | AlertaFaturamento)[]>([]);
+  const [alertas, setAlertas] = useState<(AlertaEstoque | AlertaBarbeiro | AlertaFaturamento | AlertaAniversario)[]>([]);
 
   useEffect(() => {
     if (!user || !db) return;
@@ -41,7 +47,7 @@ export default function AlertasPage() {
   const fetchAlertas = async () => {
     if (!user || !db) return;
     
-    const novosAlertas: (AlertaEstoque | AlertaBarbeiro | AlertaFaturamento)[] = [];
+    const novosAlertas: (AlertaEstoque | AlertaBarbeiro | AlertaFaturamento | AlertaAniversario)[] = [];
 
     try {
       // Verificar estoque baixo
@@ -124,6 +130,32 @@ export default function AlertasPage() {
         }
       });
 
+      // Verificar aniversariantes da semana
+      const hoje = new Date();
+      const clientesSnap = await getDocs(collection(db, `barbearias/${user.id}/clientes`));
+      clientesSnap.forEach(doc => {
+        const cliente = doc.data();
+        if (cliente.dataNascimento) {
+          const birthDate = new Date(cliente.dataNascimento + "T12:00:00");
+          const birthMonth = birthDate.getMonth();
+          const birthDay = birthDate.getDate();
+          
+          // Verificar se o aniversário é nesta semana (aproximadamente)
+          // Uma forma simples é ver se cai nos próximos 7 dias
+          const thisYearBirth = new Date(hoje.getFullYear(), birthMonth, birthDay);
+          const diffTime = thisYearBirth.getTime() - hoje.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (diffDays >= 0 && diffDays <= 7) {
+            novosAlertas.push({
+              tipo: "aniversario",
+              cliente: cliente.nome,
+              data: `${birthDay.toString().padStart(2, '0')}/${(birthMonth + 1).toString().padStart(2, '0')}`,
+            });
+          }
+        }
+      });
+
     } catch (error) {
       console.error("Erro ao buscar alertas:", error);
     }
@@ -137,6 +169,7 @@ export default function AlertasPage() {
       case "estoque": return <Package className="h-5 w-5" />;
       case "barbeiro": return <TrendingDown className="h-5 w-5" />;
       case "faturamento": return <DollarSign className="h-5 w-5" />;
+      case "aniversario": return <Cake className="h-5 w-5" />;
       default: return <AlertTriangle className="h-5 w-5" />;
     }
   };
@@ -146,15 +179,17 @@ export default function AlertasPage() {
       case "estoque": return "bg-orange-100 text-orange-800 border-orange-200";
       case "barbeiro": return "bg-red-100 text-red-800 border-red-200";
       case "faturamento": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "aniversario": return "bg-pink-100 text-pink-800 border-pink-200";
       default: return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getTituloAlerta = (alerta: AlertaEstoque | AlertaBarbeiro | AlertaFaturamento) => {
+  const getTituloAlerta = (alerta: AlertaEstoque | AlertaBarbeiro | AlertaFaturamento | AlertaAniversario) => {
     switch (alerta.tipo) {
       case "estoque": return `Estoque baixo: ${alerta.produto}`;
       case "barbeiro": return `Baixa performance: ${alerta.barbeiro}`;
       case "faturamento": return `Dia fraco: ${alerta.dia}`;
+      case "aniversario": return `Aniversariante: ${alerta.cliente}`;
       default: return "Alerta";
     }
   };
@@ -197,6 +232,9 @@ export default function AlertasPage() {
                     )}
                     {alerta.tipo === "faturamento" && (
                       <p className="text-sm text-muted-foreground">Faturamento: {formatCurrency(alerta.valor)}</p>
+                    )}
+                    {alerta.tipo === "aniversario" && (
+                      <p className="text-sm text-muted-foreground">Faz aniversário dia {alerta.data}!</p>
                     )}
                   </div>
                 </CardContent>

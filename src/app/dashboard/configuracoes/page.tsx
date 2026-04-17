@@ -11,17 +11,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Loader2, MessageCircle, Camera, X, User } from "lucide-react";
+import { Settings, Loader2, MessageCircle, Camera, X, User, CreditCard, Plus, Trash2, Link, Copy, Check, Lock } from "lucide-react";
+import { collection, query, getDocs, addDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import type { PlanoCliente } from "@/types";
 
 export default function ConfiguracoesPage() {
-  const { user, barbearia } = useAuth();
+  const { user, barbearia, updateUserContext } = useAuth();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("perfil");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [nomeBarbearia, setNomeBarbearia] = useState("");
   const [nomeUsuario, setNomeUsuario] = useState("");
   const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
+  const [planos, setPlanos] = useState<PlanoCliente[]>([]);
+  const [loadingPlanos, setLoadingPlanos] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
     if (barbearia) setNomeBarbearia(barbearia.nome);
@@ -67,6 +73,7 @@ export default function ConfiguracoesPage() {
 
       await updateDoc(doc(db, "users", user.id), { fotoPerfil: data.publicUrl });
       setFotoPerfil(data.publicUrl);
+      updateUserContext({ fotoPerfil: data.publicUrl });
       toast({ title: "Foto atualizada com sucesso!" });
     } catch (error: any) {
       console.error("Erro ao fazer upload:", error);
@@ -92,11 +99,63 @@ export default function ConfiguracoesPage() {
       }
       await updateDoc(doc(db, "users", user.id), { fotoPerfil: null });
       setFotoPerfil(null);
+      updateUserContext({ fotoPerfil: undefined });
       toast({ title: "Foto removida" });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erro", description: error.message });
     } finally {
       setUploading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) fetchPlanos();
+  }, [user]);
+
+  const fetchPlanos = async () => {
+    if (!user) return;
+    setLoadingPlanos(true);
+    try {
+      const snap = await getDocs(collection(db, `barbearias/${user.id}/planos_clientes`));
+      const list = snap.docs.map(d => ({ id: d.id, ...d.data() })) as PlanoCliente[];
+      setPlanos(list);
+
+      // Se não houver planos, carregar os 3 iniciais sugeridos
+      if (list.length === 0) {
+        await initializeDefaultPlans();
+      }
+    } catch (error) {
+      console.error("Erro ao buscar planos:", error);
+    } finally {
+      setLoadingPlanos(false);
+    }
+  };
+
+  const initializeDefaultPlans = async () => {
+    if (!user) return;
+    const defaults = [
+      { nome: "Bronze", preco: 80, descricao: "Cortes ilimitados" },
+      { nome: "Prata", preco: 120, descricao: "Cortes e Barba ilimitados" },
+      { nome: "Ouro", preco: 180, descricao: "Completo + 1 Produto/mês" }
+    ];
+
+    for (const p of defaults) {
+      await addDoc(collection(db, `barbearias/${user.id}/planos_clientes`), {
+        ...p,
+        createdAt: serverTimestamp()
+      });
+    }
+    fetchPlanos();
+  };
+
+  const handleDeletePlano = async (id: string) => {
+    if (!confirm("Excluir este plano?")) return;
+    try {
+      await deleteDoc(doc(db, `barbearias/${user!.id}/planos_clientes`, id));
+      fetchPlanos();
+      toast({ title: "Plano excluído" });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Erro ao excluir" });
     }
   };
 
@@ -114,11 +173,33 @@ export default function ConfiguracoesPage() {
     }
   };
 
-  return (
     <div className="min-h-screen">
       <Topbar />
 
-      <div className="p-6 space-y-6 max-w-2xl">
+      <div className="p-6 max-w-4xl mx-auto space-y-6">
+        <div className="flex border-b border-[#C9A84C]/30 overflow-x-auto gap-6 mb-6">
+          <button
+            onClick={() => setActiveTab("perfil")}
+            className={`pb-3 px-2 font-medium whitespace-nowrap transition-colors ${activeTab === "perfil" ? "border-b-2 border-[#C9A84C] text-[#C9A84C]" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Perfil da Conta
+          </button>
+          <button
+            onClick={() => setActiveTab("servicos")}
+            className={`pb-3 px-2 font-medium whitespace-nowrap transition-colors ${activeTab === "servicos" ? "border-b-2 border-[#C9A84C] text-[#C9A84C]" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Planos e Agendamento
+          </button>
+          <button
+            onClick={() => setActiveTab("sistema")}
+            className={`pb-3 px-2 font-medium whitespace-nowrap transition-colors ${activeTab === "sistema" ? "border-b-2 border-[#C9A84C] text-[#C9A84C]" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Acesso e Sistema
+          </button>
+        </div>
+
+        {activeTab === "perfil" && (
+        <div className="space-y-6 max-w-2xl">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -209,6 +290,132 @@ export default function ConfiguracoesPage() {
             </Button>
           </CardContent>
         </Card>
+        </div>
+        )}
+
+        {activeTab === "sistema" && (
+        <div className="space-y-6 max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              Acesso para Barbeiros
+            </CardTitle>
+            <CardDescription>Este é o código que seus colaboradores usarão para acessar o sistema</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 bg-primary/5 rounded-lg border border-primary/10">
+              <p className="text-sm text-muted-foreground mb-2">Código da Barbearia:</p>
+              <div className="flex gap-2">
+                <Input 
+                  value={user?.id || ""} 
+                  readOnly 
+                  className="font-mono text-lg font-bold"
+                />
+                <Button 
+                  size="icon" 
+                  variant="outline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(user?.id || "");
+                    toast({ title: "Código copiado!" });
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Seus barbeiros devem entrar na página de login de barbeiro e usar este código junto com o telefone e senha cadastrados.
+            </p>
+          </CardContent>
+        </Card>
+        </div>
+        )}
+
+        {activeTab === "servicos" && (
+        <div className="space-y-6 max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Link className="h-5 w-5" />
+              Agendamento Online
+            </CardTitle>
+            <CardDescription>Compartilhe este link com seus clientes</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground mb-2">Link para clientes agendarem:</p>
+              <div className="flex gap-2">
+                <Input 
+                  value={`https://gbarber-sistema.vercel.app/agendar?barbearia=${user?.id}`} 
+                  readOnly 
+                  className="font-mono text-sm"
+                />
+                <Button 
+                  size="icon" 
+                  variant="outline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://gbarber-sistema.vercel.app/agendar?barbearia=${user?.id}`);
+                    setLinkCopied(true);
+                    setTimeout(() => setLinkCopied(false), 2000);
+                    toast({ title: "Link copiado!" });
+                  }}
+                >
+                  {linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Envie este link para seus clientes agendarem horários pelo site.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Planos de Clientes (Assinaturas)
+            </CardTitle>
+            <CardDescription>Configure os planos mensais que seus clientes podem assinar</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {loadingPlanos ? (
+              <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>
+            ) : (
+              <div className="space-y-3">
+                {planos.map(plano => (
+                  <div key={plano.id} className="flex items-center justify-between p-3 border rounded-lg bg-accent/5">
+                    <div>
+                      <p className="font-bold">{plano.nome}</p>
+                      <p className="text-sm text-muted-foreground">R$ {plano.preco.toFixed(2)} - {plano.descricao}</p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeletePlano(plano.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+                
+                <Button variant="outline" className="w-full border-dashed" onClick={() => {
+                  const nome = prompt("Nome do plano:");
+                  const preco = prompt("Preço (número):");
+                  const descricao = prompt("Descrição:");
+                  if (nome && preco) {
+                    addDoc(collection(db, `barbearias/${user!.id}/planos_clientes`), {
+                      nome,
+                      preco: parseFloat(preco),
+                      descricao,
+                      createdAt: serverTimestamp()
+                    }).then(() => fetchPlanos());
+                  }
+                }}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Plano
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
@@ -236,6 +443,8 @@ export default function ConfiguracoesPage() {
             </Button>
           </CardContent>
         </Card>
+        </div>
+        )}
       </div>
     </div>
   );
