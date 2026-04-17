@@ -173,6 +173,7 @@ export default function ConfiguracoesPage() {
     }
   };
 
+  return (
     <div className="min-h-screen">
       <Topbar />
 
