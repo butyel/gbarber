@@ -10,9 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format, addDays, startOfDay, parseISO } from "date-fns";
+import { format, addDays, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { User, Calendar, Clock, Check, Loader2, AlertCircle, Phone, Cake, Scissors } from "lucide-react";
+import { User, Calendar, Clock, Check, Loader2, AlertCircle, Scissors } from "lucide-react";
 import type { Servico, Barbeiro, Cliente } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 
@@ -24,9 +24,15 @@ const HORARIOS = [
 ];
 
 function formatTelefone(valor: string) {
+  // Limita a 11 dígitos (DDD 2 + celular 9 dígitos)
   const nums = valor.replace(/\D/g, "").slice(0, 11);
   if (nums.length <= 2) return nums;
-  if (nums.length <= 7) return `(${nums.slice(0, 2)}) ${nums.slice(2)}`;
+  if (nums.length <= 6) return `(${nums.slice(0, 2)}) ${nums.slice(2)}`;
+  if (nums.length <= 10) {
+    // Fixo: (XX) XXXX-XXXX
+    return `(${nums.slice(0, 2)}) ${nums.slice(2, 6)}-${nums.slice(6)}`;
+  }
+  // Celular: (XX) 9XXXX-XXXX
   return `(${nums.slice(0, 2)}) ${nums.slice(2, 7)}-${nums.slice(7)}`;
 }
 
@@ -133,7 +139,7 @@ function AgendarContent() {
       return;
     }
 
-    if (telefoneLimpi.length !== 11) {
+    if (telefoneLimpi.length < 10 || telefoneLimpi.length > 11) {
       setErro("Telefone inválido. Use o padrão (DDD) 9XXXX-XXXX");
       return;
     }
@@ -267,7 +273,8 @@ function AgendarContent() {
                     value={telefoneCliente}
                     onChange={(e) => handleTelefoneChange(e.target.value)}
                     placeholder="(00) 00000-0000"
-                    maxLength={14}
+                    maxLength={15}
+                    inputMode="tel"
                   />
                 </div>
                 <div className="space-y-2">

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,9 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatCard } from "@/components/ui/stat-card";
+import { FaturamentoChart, AtendimentosChart } from "@/components/charts";
 import { formatCurrency, formatTime } from "@/lib/utils";
-import { DollarSign, Users, Receipt, TrendingUp, TrendingDown, Plus, Wallet, Award, Cake } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { DollarSign, Users, Receipt, Plus, Wallet, Award, Cake } from "lucide-react";
 import type { Atendimento } from "@/types";
 import { useRouter } from "next/navigation";
 import { format, addDays } from "date-fns";
@@ -36,12 +38,9 @@ export default function DashboardPage() {
   const [atendimentosHora, setAtendimentosHora] = useState<{ hora: string; count: number }[]>([]);
   const [aniversariantesSemana, setAniversariantesSemana] = useState<{ nome: string; data: string }[]>([]);
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!user || !db) return;
-    fetchData();
-  }, [user, db]);
 
-  const fetchData = async () => {
     try {
       const now = new Date();
       const todayString = format(now, "yyyy-MM-dd");
@@ -56,7 +55,6 @@ export default function DashboardPage() {
         createdAt: doc.data().createdAt?.toDate() || new Date(),
       })) as Atendimento[];
 
-      // Filter by the planned 'data' field, not createdAt
       const todayAppointments = allAppointments.filter(a => a.data === todayString);
       const todayFinalized = todayAppointments.filter(a => a.status === "finalizado");
       const yesterdayFinalized = allAppointments.filter(a => 
@@ -66,7 +64,7 @@ export default function DashboardPage() {
       const faturamentoDia = todayFinalized.reduce((sum, a) => sum + a.valor, 0);
       const comissoesDia = todayFinalized.reduce((sum, a) => sum + a.comissao, 0);
       const lucroDia = faturamentoDia - comissoesDia;
-      const count = todayAppointments.length; // Count all planned for today
+      const count = todayAppointments.length;
       
       const yesterdayFaturamento = yesterdayFinalized.reduce((sum, a) => sum + a.valor, 0);
       const crescimento = yesterdayFaturamento > 0 
@@ -102,20 +100,18 @@ export default function DashboardPage() {
         setTopServico({ nome: top[0], quantidade: top[1] });
       }
 
-        // Calculate values for chart using the 'data' field
-        const today = new Date();
-        const semanal: { dia: string; valor: number }[] = [];
-        for (let i = 6; i >= 0; i--) {
-          const d = addDays(today, -i);
-          const dString = format(d, "yyyy-MM-dd");
-          const doDia = allAppointments.filter(a => a.data === dString && a.status === "finalizado");
-          const valor = doDia.reduce((sum, a) => sum + a.valor, 0);
-          
-          semanal.push({
-            dia: format(d, "EEE", { locale: ptBR }),
-            valor,
-          });
-        }
+      const semanal: { dia: string; valor: number }[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = addDays(now, -i);
+        const dString = format(d, "yyyy-MM-dd");
+        const doDia = allAppointments.filter(a => a.data === dString && a.status === "finalizado");
+        const valor = doDia.reduce((sum, a) => sum + a.valor, 0);
+        
+        semanal.push({
+          dia: format(d, "EEE", { locale: ptBR }),
+          valor,
+        });
+      }
       setFaturamentoSemanal(semanal);
 
       const horaCount: Record<string, number> = {};
@@ -130,10 +126,8 @@ export default function DashboardPage() {
         .sort((a, b) => parseInt(a.hora) - parseInt(b.hora));
       setAtendimentosHora(horaData);
 
-      // Buscar aniversariantes da semana
       const clientesSnap = await getDocs(collection(db, `barbearias/${user.id}/clientes`));
       const niverData: { nome: string; data: string }[] = [];
-      const hoje = new Date();
       
       clientesSnap.forEach(doc => {
         const cliente = doc.data();
@@ -142,8 +136,8 @@ export default function DashboardPage() {
           const birthMonth = birthDate.getMonth();
           const birthDay = birthDate.getDate();
           
-          const thisYearBirth = new Date(hoje.getFullYear(), birthMonth, birthDay);
-          const diffTime = thisYearBirth.getTime() - hoje.getTime();
+          const thisYearBirth = new Date(now.getFullYear(), birthMonth, birthDay);
+          const diffTime = thisYearBirth.getTime() - now.getTime();
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           
           if (diffDays >= 0 && diffDays <= 7) {
@@ -161,7 +155,13 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const formattedTicketMedio = useMemo(() => formatCurrency(stats.ticketMedio), [stats.ticketMedio]);
 
   return (
     <div className="min-h-screen">
@@ -182,78 +182,35 @@ export default function DashboardPage() {
 
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Faturamento Hoje</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <Skeleton className="h-8 w-24" />
-              ) : (
-                <>
-                  <div className="text-2xl font-bold">{formatCurrency(stats.faturamentoDia)}</div>
-                  {stats.crescimento !== 0 && (
-                    <p className={`text-xs ${stats.crescimento >= 0 ? "text-green-500" : "text-red-500"} flex items-center gap-1`}>
-                      {stats.crescimento >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                      {Math.abs(stats.crescimento).toFixed(1)}% vs ontem
-                    </p>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Lucro do Dia</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <>
-                  <div className="text-2xl font-bold text-green-600">{formatCurrency(stats.lucroDia)}</div>
-                  <p className="text-xs text-muted-foreground">Receita - Comissões</p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Atendimentos</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <>
-                  <div className="text-2xl font-bold">{stats.atendimentosDia}</div>
-                  <p className="text-xs text-muted-foreground">Clientes hoje</p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Ticket Médio</CardTitle>
-              <Receipt className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <Skeleton className="h-8 w-20" />
-              ) : (
-                <>
-                  <div className="text-2xl font-bold">{formatCurrency(stats.ticketMedio)}</div>
-                  <p className="text-xs text-muted-foreground">Por atendimento</p>
-                </>
-              )}
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Faturamento Hoje"
+            value={formatCurrency(stats.faturamentoDia)}
+            icon={<DollarSign className="h-4 w-4" />}
+            trend={stats.crescimento}
+            loading={loading}
+          />
+          <StatCard
+            title="Lucro do Dia"
+            value={formatCurrency(stats.lucroDia)}
+            icon={<DollarSign className="h-4 w-4 text-green-500" />}
+            description="Receita - Comissões"
+            valueClassName="text-green-600"
+            loading={loading}
+          />
+          <StatCard
+            title="Atendimentos"
+            value={stats.atendimentosDia}
+            icon={<Users className="h-4 w-4" />}
+            description="Clientes hoje"
+            loading={loading}
+          />
+          <StatCard
+            title="Ticket Médio"
+            value={formattedTicketMedio}
+            icon={<Receipt className="h-4 w-4" />}
+            description="Por atendimento"
+            loading={loading}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -277,7 +234,7 @@ export default function DashboardPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Receipt className="h-4 w-4 text-accent" />
-                  Serviço Mais Vendida
+                  Serviço Mais Vendido
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -318,17 +275,7 @@ export default function DashboardPage() {
               {loading ? (
                 <Skeleton className="h-40 w-full" />
               ) : (
-                <ResponsiveContainer width="100%" height={160}>
-                  <BarChart data={faturamentoSemanal}>
-                    <XAxis dataKey="dia" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `R$${v}`} />
-                    <Tooltip 
-                      formatter={(value: number) => formatCurrency(value)}
-                      contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
-                    />
-                    <Bar dataKey="valor" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <FaturamentoChart data={faturamentoSemanal} />
               )}
             </CardContent>
           </Card>
@@ -340,21 +287,8 @@ export default function DashboardPage() {
             <CardContent>
               {loading ? (
                 <Skeleton className="h-40 w-full" />
-              ) : atendimentosHora.length === 0 ? (
-                <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
-                  Nenhum atendimento hoje
-                </div>
               ) : (
-                <ResponsiveContainer width="100%" height={160}>
-                  <LineChart data={atendimentosHora}>
-                    <XAxis dataKey="hora" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
-                    />
-                    <Line type="monotone" dataKey="count" stroke="#f59e0b" strokeWidth={2} dot={{ fill: "#f59e0b" }} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <AtendimentosChart data={atendimentosHora} empty={atendimentosHora.length === 0} />
               )}
             </CardContent>
           </Card>
