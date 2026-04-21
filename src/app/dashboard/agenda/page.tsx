@@ -39,7 +39,7 @@ export default function AgendaPage() {
     cliente: "",
     telefone: "",
     barbeiroId: "",
-    servicoId: "",
+    servicoIds: [] as string[],
     hora: "09:00",
     data: "",
   });
@@ -137,7 +137,7 @@ export default function AgendaPage() {
       cliente: "",
       telefone: "",
       barbeiroId: "",
-      servicoId: "",
+      servicoIds: [],
       hora: hour ? `${hour.toString().padStart(2, "0")}:00` : "09:00",
       data: dateStr,
     });
@@ -146,7 +146,7 @@ export default function AgendaPage() {
   };
 
   const handleSubmit = async () => {
-    if (!user || !db || !formData.cliente || !formData.barbeiroId || !formData.servicoId) {
+    if (!user || !db || !formData.cliente || !formData.barbeiroId || formData.servicoIds.length === 0) {
       toast({ variant: "destructive", title: "Preencha todos os campos obrigatórios" });
       return;
     }
@@ -154,19 +154,20 @@ export default function AgendaPage() {
     setSubmitting(true);
     try {
       const barbeiro = barbeiros.find(b => b.id === formData.barbeiroId);
-      const servico = servicos.find(s => s.id === formData.servicoId);
+      const servicosSelecionados = servicos.filter(s => formData.servicoIds.includes(s.id));
       
-      const comissao = servico ? (servico.preco * (barbeiro?.comissaoServico || 15)) / 100 : 0;
+      const valorTotal = servicosSelecionados.reduce((sum, s) => sum + s.preco, 0);
+      const comissaoTotal = servicosSelecionados.reduce((sum, s) => sum + (s.preco * (barbeiro?.comissaoServico || 15)) / 100, 0);
 
       await addDoc(collection(db, `barbearias/${user.id}/atendimentos`), {
         cliente: formData.cliente,
         telefone: formData.telefone || "",
         barbeiroId: formData.barbeiroId,
         barbeiroNome: barbeiro?.nome || "",
-        servicoId: formData.servicoId,
-        servicoNome: servico?.nome || "",
-        valor: servico?.preco || 0,
-        comissao,
+        servicoIds: formData.servicoIds,
+        servicoNomes: servicosSelecionados.map(s => s.nome).join(", "),
+        valor: valorTotal,
+        comissao: comissaoTotal,
         data: formData.data,
         hora: formData.hora,
         status: "agendado",
@@ -333,7 +334,7 @@ export default function AgendaPage() {
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <div className="font-semibold text-foreground truncate">{apt.cliente}</div>
-                                <div className="truncate text-muted-foreground mt-0.5" title={apt.servicoNome}>{apt.servicoNome}</div>
+                                <div className="truncate text-muted-foreground mt-0.5" title={apt.servicoNomes || apt.servicoNome}>{apt.servicoNomes || apt.servicoNome}</div>
                                 <div className="flex items-center justify-between mt-1 pt-1 border-t border-border/20">
                                   <div className="truncate text-[10px] uppercase font-medium">{apt.barbeiroNome}</div>
                                   <div className="font-medium text-foreground">R$ {apt.valor}</div>
@@ -365,7 +366,7 @@ export default function AgendaPage() {
                               </div>
                               <div className="flex items-center gap-1.5 text-muted-foreground mt-1 bg-background/30 rounded p-1">
                                 <Scissors className="w-3 h-3" />
-                                <span className="truncate" title={apt.servicoNome}>{apt.servicoNome}</span>
+                                <span className="truncate" title={apt.servicoNomes || apt.servicoNome}>{apt.servicoNomes || apt.servicoNome}</span>
                               </div>
                               <div className="flex items-center justify-between mt-1 pt-2 border-t border-border/20">
                                 <div className="flex items-center gap-1.5 text-foreground font-medium bg-background/40 py-0.5 px-2 rounded-full text-xs">
@@ -502,13 +503,35 @@ export default function AgendaPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Serviço *</Label>
-              <Select value={formData.servicoId} onValueChange={(v) => setFormData({ ...formData, servicoId: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {servicos.map(s => <SelectItem key={s.id} value={s.id}>{s.nome} - {formatCurrency(s.preco)}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Label>Serviços *</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[200px] overflow-y-auto border rounded-md p-2">
+                {servicos.map(s => (
+                  <label key={s.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={formData.servicoIds.includes(s.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormData({ ...formData, servicoIds: [...formData.servicoIds, s.id] });
+                        } else {
+                          setFormData({ ...formData, servicoIds: formData.servicoIds.filter(id => id !== s.id) });
+                        }
+                      }}
+                      className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm">{s.nome}</span>
+                    <span className="text-xs text-muted-foreground ml-auto">{formatCurrency(s.preco)}</span>
+                  </label>
+                ))}
+              </div>
+              {formData.servicoIds.length > 0 && (() => {
+                const total = servicos.filter(s => formData.servicoIds.includes(s.id)).reduce((sum, s) => sum + s.preco, 0);
+                return (
+                  <p className="text-sm text-muted-foreground">
+                    Total: {formatCurrency(total)}
+                  </p>
+                );
+              })()}
             </div>
           </div>
           <DialogFooter>

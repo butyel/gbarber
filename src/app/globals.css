@@ -4,32 +4,32 @@
   --color-background: #EAD9B5;
   --color-foreground: #1A2E21;
   
-  --color-card: rgba(255, 255, 255, 0.5);
+  --color-card: #FCF8EE;
   --color-card-foreground: #1A2E21;
   
-  --color-popover: #EAD9B5;
+  --color-popover: #FCF8EE;
   --color-popover-foreground: #1A2E21;
   
   --color-primary: #1A2E21;
-  --color-primary-foreground: #C9A84C;
+  --color-primary-foreground: #F5EFE0;
   
-  --color-secondary: rgba(26, 46, 33, 0.1);
+  --color-secondary: #EAD9B5;
   --color-secondary-foreground: #1A2E21;
   
-  --color-muted: rgba(26, 46, 33, 0.1);
-  --color-muted-foreground: rgba(26, 46, 33, 0.7);
+  --color-muted: #EAD9B5;
+  --color-muted-foreground: #3D5240;
   
   --color-accent: #C9A84C;
   --color-accent-foreground: #1A2E21;
   
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #ffffff;
+  --color-destructive: #DC2626;
+  --color-destructive-foreground: #FFFFFF;
   
-  --color-border: rgba(26, 46, 33, 0.15);
-  --color-input: rgba(26, 46, 33, 0.05);
+  --color-border: rgba(26, 46, 33, 0.2);
+  --color-input: rgba(26, 46, 33, 0.1);
   --color-ring: #1A2E21;
   
-  --color-success: #10b981;
+  --color-success: #059669;
   --color-info: #C9A84C;
 
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -73,18 +73,18 @@ body {
 
 /* Glassmorphism */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(26, 46, 33, 0.1);
+  border: 1px solid rgba(26, 46, 33, 0.15);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(26, 46, 33, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(26, 46, 33, 0.05);
+  border: 1px solid rgba(26, 46, 33, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(26, 46, 33, 0.08);
 }
 
 /* Glow Effects */

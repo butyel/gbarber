@@ -86,8 +86,10 @@ export interface Atendimento {
   telefone?: string;
   barbeiroId: string;
   barbeiroNome: string;
-  servicoId: string;
-  servicoNome: string;
+  servicoId?: string;
+  servicoIds?: string[];
+  servicoNome?: string;
+  servicoNomes?: string;
   valor: number;
   produtoVendido?: ProdutoVendido;
   comissao: number;
