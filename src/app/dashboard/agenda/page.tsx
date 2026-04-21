@@ -211,11 +211,11 @@ export default function AgendaPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "agendado": return "bg-blue-500";
-      case "em_atendimento": return "bg-yellow-500";
-      case "concluido": return "bg-green-500";
-      case "cancelado": return "bg-red-500";
-      default: return "bg-gray-500";
+      case "agendado": return "bg-blue-600 text-white";
+      case "em_atendimento": return "bg-yellow-500 text-white";
+      case "concluido": return "bg-green-600 text-white";
+      case "cancelado": return "bg-red-600 text-white";
+      default: return "bg-gray-500 text-white";
     }
   };
 
@@ -333,11 +333,11 @@ export default function AgendaPage() {
                                 className={`text-xs p-2 rounded-md shadow-sm cursor-pointer border ${getStatusColor(apt.status)}`}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <div className="font-semibold text-foreground truncate">{apt.cliente}</div>
-                                <div className="truncate text-muted-foreground mt-0.5" title={apt.servicoNomes || apt.servicoNome}>{apt.servicoNomes || apt.servicoNome}</div>
-                                <div className="flex items-center justify-between mt-1 pt-1 border-t border-border/20">
+                                <div className="font-semibold truncate">{apt.cliente}</div>
+                                <div className="truncate mt-0.5 opacity-90" title={apt.servicoNomes || apt.servicoNome}>{apt.servicoNomes || apt.servicoNome}</div>
+                                <div className="flex items-center justify-between mt-1 pt-1 border-t border-white/20">
                                   <div className="truncate text-[10px] uppercase font-medium">{apt.barbeiroNome}</div>
-                                  <div className="font-medium text-foreground">R$ {apt.valor}</div>
+                                  <div className="font-medium">R$ {apt.valor}</div>
                                 </div>
                               </div>
                             ))}
@@ -361,19 +361,19 @@ export default function AgendaPage() {
                               onClick={(e) => e.stopPropagation()}
                             >
                               <div className="flex justify-between items-start">
-                                <div className="font-bold text-foreground truncate text-base">{apt.cliente}</div>
-                                <div className="font-bold whitespace-nowrap bg-background/50 px-2 py-0.5 rounded text-xs border border-border/50">R$ {apt.valor}</div>
+                                <div className="font-bold truncate text-base">{apt.cliente}</div>
+                                <div className="font-bold whitespace-nowrap bg-white/20 px-2 py-0.5 rounded text-xs border border-white/30">R$ {apt.valor}</div>
                               </div>
-                              <div className="flex items-center gap-1.5 text-muted-foreground mt-1 bg-background/30 rounded p-1">
+                              <div className="flex items-center gap-1.5 mt-1 bg-black/10 rounded p-1">
                                 <Scissors className="w-3 h-3" />
                                 <span className="truncate" title={apt.servicoNomes || apt.servicoNome}>{apt.servicoNomes || apt.servicoNome}</span>
                               </div>
-                              <div className="flex items-center justify-between mt-1 pt-2 border-t border-border/20">
-                                <div className="flex items-center gap-1.5 text-foreground font-medium bg-background/40 py-0.5 px-2 rounded-full text-xs">
+                              <div className="flex items-center justify-between mt-1 pt-2 border-t border-white/20">
+                                <div className="flex items-center gap-1.5 font-medium bg-white/20 py-0.5 px-2 rounded-full text-xs">
                                   <User className="w-3 h-3" />
                                   <span className="truncate">{apt.barbeiroNome}</span>
                                 </div>
-                                <div className="text-[10px] uppercase tracking-wider font-semibold opacity-70">
+                                <div className="text-[10px] uppercase tracking-wider font-semibold opacity-80">
                                   {apt.status.replace("_", " ")}
                                 </div>
                               </div>
@@ -390,21 +390,21 @@ export default function AgendaPage() {
 
         <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-3 rounded-lg border shadow-sm text-sm">
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-md border border-blue-200 dark:border-blue-800">
-              <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-              <span className="font-medium text-blue-700 dark:text-blue-300">Agendado</span>
+            <div className="flex items-center gap-2 bg-blue-100 px-3 py-1.5 rounded-md border border-blue-200">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-600"></div>
+              <span className="font-medium text-blue-800">Agendado</span>
             </div>
-            <div className="flex items-center gap-2 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1.5 rounded-md border border-yellow-200 dark:border-yellow-800">
-              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-              <span className="font-medium text-yellow-700 dark:text-yellow-300">Aguardando/Sendo Atendido</span>
+            <div className="flex items-center gap-2 bg-yellow-100 px-3 py-1.5 rounded-md border border-yellow-200">
+              <div className="w-2.5 h-2.5 rounded-full bg-yellow-600"></div>
+              <span className="font-medium text-yellow-800">Aguardando/Sendo Atendido</span>
             </div>
-            <div className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-md border border-green-200 dark:border-green-800">
-              <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-              <span className="font-medium text-green-700 dark:text-green-300">Concluído</span>
+            <div className="flex items-center gap-2 bg-green-100 px-3 py-1.5 rounded-md border border-green-200">
+              <div className="w-2.5 h-2.5 rounded-full bg-green-600"></div>
+              <span className="font-medium text-green-800">Concluído</span>
             </div>
-            <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-md border border-red-200 dark:border-red-800">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-              <span className="font-medium text-red-700 dark:text-red-300">Cancelado</span>
+            <div className="flex items-center gap-2 bg-red-100 px-3 py-1.5 rounded-md border border-red-200">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-600"></div>
+              <span className="font-medium text-red-800">Cancelado</span>
             </div>
           </div>
           <div className="text-xs text-muted-foreground flex items-center gap-1">
