@@ -334,6 +334,14 @@ export default function ClientesPage() {
               />
             </div>
             <div className="space-y-2">
+              <Label>Data Vencimento</Label>
+              <Input 
+                type="date"
+                value={formData.dataVencimento} 
+                onChange={(e) => setFormData({ ...formData, dataVencimento: e.target.value })} 
+              />
+            </div>
+            <div className="space-y-2">
               <Label>Observações</Label>
               <Input 
                 value={formData.observacoes} 
