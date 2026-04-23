@@ -33,7 +33,6 @@ export default function ClientesPage() {
     email: "",
     dataNascimento: "",
     planoId: "",
-    dataVencimento: "",
     observacoes: "",
   });
   const [planos, setPlanos] = useState<PlanoCliente[]>([]);
@@ -79,7 +78,6 @@ export default function ClientesPage() {
           email: formData.email,
           dataNascimento: formData.dataNascimento,
           planoId: formData.planoId,
-          dataVencimento: formData.dataVencimento,
           observacoes: formData.observacoes,
         });
         toast({ title: "Cliente atualizado!" });
@@ -90,14 +88,13 @@ export default function ClientesPage() {
           email: formData.email,
           dataNascimento: formData.dataNascimento,
           planoId: formData.planoId,
-          dataVencimento: formData.dataVencimento,
           observacoes: formData.observacoes,
           createdAt: serverTimestamp(),
         });
         toast({ title: "Cliente adicionado!" });
       }
       setIsModalOpen(false);
-      setFormData({ nome: "", telefone: "", email: "", dataNascimento: "", planoId: "", dataVencimento: "", observacoes: "" });
+      setFormData({ nome: "", telefone: "", email: "", dataNascimento: "", planoId: "", observacoes: "" });
       setEditingId(null);
       fetchData();
     } catch (error: any) {
