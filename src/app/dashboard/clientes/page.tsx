@@ -33,9 +33,11 @@ export default function ClientesPage() {
     email: "",
     dataNascimento: "",
     planoId: "",
+    dataVencimento: "",
     observacoes: "",
   });
   const [planos, setPlanos] = useState<PlanoCliente[]>([]);
+  const [isPlanosModalOpen, setIsPlanosModalOpen] = useState(false);
 
   useEffect(() => {
     if (!user || !db) return;
