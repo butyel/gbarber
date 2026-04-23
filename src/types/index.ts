@@ -26,6 +26,7 @@ export interface PlanoCliente {
   id: string;
   nome: string;
   preco: number;
+  tipo: "mensal" | "semestral" | "anual";
   descricao?: string;
   createdAt: Date;
 }
