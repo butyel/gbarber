@@ -434,11 +434,11 @@ export default function AgendaPage() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Novo Agendamento</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 pr-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Data</Label>
@@ -562,7 +562,7 @@ export default function AgendaPage() {
               })()}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-4 pb-2">
             <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
             <Button onClick={handleSubmit} disabled={submitting}>
               {submitting ? "Salvando..." : "Agendar"}
