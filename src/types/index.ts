@@ -38,6 +38,7 @@ export interface Cliente {
   email?: string;
   dataNascimento?: string;
   planoId?: string;
+  dataVencimento?: string;
   observacoes?: string;
   fotoPerfil?: string;
   fotosCorte?: string[];
