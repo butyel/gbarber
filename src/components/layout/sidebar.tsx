@@ -19,8 +19,7 @@ import {
   ClipboardList,
   X,
   ChevronLeft,
-  Bell,
-  CreditCard
+  Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -35,7 +34,6 @@ const navItems = [
   { href: "/dashboard/agenda", label: "Agenda", icon: Calendar },
   { href: "/dashboard/servicos", label: "Serviços", icon: Scissors },
   { href: "/dashboard/produtos", label: "Produtos", icon: Package },
-  { href: "/dashboard/planos", label: "Planos", icon: CreditCard },
   { href: "/dashboard/alertas", label: "Alertas", icon: Bell },
   { href: "/dashboard/relatorios", label: "Relatórios", icon: BarChart3 },
   { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings },
