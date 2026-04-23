@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { collection, query, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
+import { useState, useEffect, useMemo } from "react";
+import { collection, query, where, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
+import { format, addDays, startOfWeek, endOfWeek } from "date-fns";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
@@ -14,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Plus, Clock, User, Scissors, X, Check, Phone, Calendar, CalendarDays, List } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Atendimento, Barbeiro, Servico, Cliente } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -51,8 +53,16 @@ export default function AgendaPage() {
 
   const fetchData = async () => {
     try {
+      const weekStart = format(startOfWeek(currentDate), "yyyy-MM-dd");
+      const weekEnd = format(endOfWeek(currentDate), "yyyy-MM-dd");
+
       const [appointmentsSnap, barbeirosSnap, servicosSnap, clientesSnap] = await Promise.all([
-        getDocs(query(collection(db, `barbearias/${user!.id}/atendimentos`), orderBy("data", "asc"))),
+        getDocs(query(
+          collection(db, `barbearias/${user!.id}/atendimentos`),
+          where("data", ">=", weekStart),
+          where("data", "<=", weekEnd),
+          orderBy("data", "asc")
+        )),
         getDocs(query(collection(db, `barbearias/${user!.id}/barbeiros`), orderBy("nome"))),
         getDocs(query(collection(db, `barbearias/${user!.id}/servicos`), orderBy("nome"))),
         getDocs(query(collection(db, `barbearias/${user!.id}/clientes`), orderBy("nome"))),
@@ -101,10 +111,20 @@ export default function AgendaPage() {
     });
   };
 
+  const appointmentsBySlot = useMemo(() => {
+    const map = new Map<string, Atendimento[]>();
+    appointments.forEach(a => {
+      const key = `${a.data}-${a.hora.substring(0, 2)}`;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(a);
+    });
+    return map;
+  }, [appointments]);
+
   const getAppointmentsForSlot = (date: Date, hour: number) => {
     const dateStr = date.toISOString().split("T")[0];
     const hourStr = hour.toString().padStart(2, "0");
-    return appointments.filter(a => a.data === dateStr && a.hora.startsWith(hourStr));
+    return appointmentsBySlot.get(`${dateStr}-${hourStr}`) || [];
   };
 
   const getMonthName = () => {
@@ -504,9 +524,17 @@ export default function AgendaPage() {
             </div>
             <div className="space-y-2">
               <Label>Serviços *</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[200px] overflow-y-auto border rounded-md p-2">
+              <div className="border rounded-md divide-y max-h-[200px] overflow-y-auto">
                 {servicos.map(s => (
-                  <label key={s.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors">
+                  <label 
+                    key={s.id} 
+                    className={cn(
+                      "flex items-center gap-3 p-3 cursor-pointer transition-colors",
+                      formData.servicoIds.includes(s.id) 
+                        ? "bg-primary/10" 
+                        : "hover:bg-muted/50"
+                    )}
+                  >
                     <input
                       type="checkbox"
                       checked={formData.servicoIds.includes(s.id)}
@@ -519,8 +547,8 @@ export default function AgendaPage() {
                       }}
                       className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
-                    <span className="text-sm">{s.nome}</span>
-                    <span className="text-xs text-muted-foreground ml-auto">{formatCurrency(s.preco)}</span>
+                    <span className="flex-1 font-medium">{s.nome}</span>
+                    <span className="text-sm font-semibold text-primary">{formatCurrency(s.preco)}</span>
                   </label>
                 ))}
               </div>
