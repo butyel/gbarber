@@ -24,6 +24,7 @@ const pageTitles: Record<string, string> = {
   "/dashboard/caixa": "Caixa do Dia",
   "/dashboard/relatorios": "Relatórios",
   "/dashboard/configuracoes": "Configurações",
+  "/dashboard/planos": "Planos",
   "/dashboard/admin": "Admin",
 };
 

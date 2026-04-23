@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { supabase } from "@/lib/supabase";
@@ -17,6 +18,7 @@ import type { PlanoCliente } from "@/types";
 
 export default function ConfiguracoesPage() {
   const { user, barbearia, updateUserContext } = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("perfil");
   const [saving, setSaving] = useState(false);
@@ -372,49 +374,29 @@ export default function ConfiguracoesPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-accent/20 glass-card">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-accent">
               <CreditCard className="h-5 w-5" />
-              Planos de Clientes (Assinaturas)
+              Gestão de Planos de Assinatura
             </CardTitle>
-            <CardDescription>Configure os planos mensais que seus clientes podem assinar</CardDescription>
+            <CardDescription>
+              Gerencie os planos recorrentes que seus clientes podem assinar para fidelização.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {loadingPlanos ? (
-              <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>
-            ) : (
-              <div className="space-y-3">
-                {planos.map(plano => (
-                  <div key={plano.id} className="flex items-center justify-between p-3 border rounded-lg bg-accent/5">
-                    <div>
-                      <p className="font-bold">{plano.nome}</p>
-                      <p className="text-sm text-muted-foreground">R$ {plano.preco.toFixed(2)} - {plano.descricao}</p>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeletePlano(plano.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                ))}
-                
-                <Button variant="outline" className="w-full border-dashed" onClick={() => {
-                  const nome = prompt("Nome do plano:");
-                  const preco = prompt("Preço (número):");
-                  const descricao = prompt("Descrição:");
-                  if (nome && preco) {
-                    addDoc(collection(db, `barbearias/${user!.id}/planos_clientes`), {
-                      nome,
-                      preco: parseFloat(preco),
-                      descricao,
-                      createdAt: serverTimestamp()
-                    }).then(() => fetchPlanos());
-                  }
-                }}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo Plano
-                </Button>
-              </div>
-            )}
+            <div className="p-4 bg-accent/5 rounded-lg border border-accent/10">
+              <p className="text-sm text-muted-foreground mb-4">
+                Agora você tem uma página dedicada para gerenciar seus planos com mais detalhes, incluindo estatísticas de assinantes e faturamento estimado.
+              </p>
+              <Button 
+                onClick={() => router.push("/dashboard/planos")}
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                Ir para Gestão de Planos
+                <CreditCard className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
