@@ -19,7 +19,8 @@ import { cn } from "@/lib/utils";
 import type { Atendimento, Barbeiro, Servico, Cliente } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
-const HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 8:00 to 20:00
+const HOURS = Array.from({ length: 26 }, (_, i) => i + 16); // 16: 8:00, 17: 8:30, ... hasta 52 (20:30)
+const getHourLabel = (idx: number) => Math.floor(idx / 2) + ":" + (idx % 2 === 0 ? "00" : "30");
 const DAYS_OF_WEEK = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 export default function AgendaPage() {
@@ -114,7 +115,7 @@ export default function AgendaPage() {
   const appointmentsBySlot = useMemo(() => {
     const map = new Map<string, Atendimento[]>();
     appointments.forEach(a => {
-      const key = `${a.data}-${a.hora.substring(0, 2)}`;
+      const key = `${a.data}-${a.hora}`;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(a);
     });
@@ -123,8 +124,8 @@ export default function AgendaPage() {
 
   const getAppointmentsForSlot = (date: Date, hour: number) => {
     const dateStr = date.toISOString().split("T")[0];
-    const hourStr = hour.toString().padStart(2, "0");
-    return appointmentsBySlot.get(`${dateStr}-${hourStr}`) || [];
+    const hourLabel = getHourLabel(hour);
+    return appointmentsBySlot.get(`${dateStr}-${hourLabel}`) || [];
   };
 
   const getMonthName = () => {
@@ -329,7 +330,7 @@ export default function AgendaPage() {
               {HOURS.map(hour => (
                 <div key={hour} className={`grid border-b min-h-[100px] ${viewMode === "week" ? "grid-cols-[80px_repeat(7,1fr)]" : "grid-cols-[100px_1fr]"}`}>
                   <div className="p-2 text-center text-sm text-muted-foreground border-r bg-muted/10 flex items-start justify-center pt-4 sticky left-0 font-medium">
-                    {hour.toString().padStart(2, "0")}:00
+                    {getHourLabel(hour)}
                   </div>
                   
                   {viewMode === "week" ? (
@@ -454,13 +455,8 @@ export default function AgendaPage() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {HOURS.map(h => (
-                      <SelectItem key={h} value={`${h.toString().padStart(2, "0")}:00`}>
-                        {h.toString().padStart(2, "0")}:00
-                      </SelectItem>
-                    ))}
-                    {HOURS.map(h => (
-                      <SelectItem key={h} value={`${h.toString().padStart(2, "0")}:30`}>
-                        {h.toString().padStart(2, "0")}:30
+                      <SelectItem key={h} value={getHourLabel(h)}>
+                        {getHourLabel(h)}
                       </SelectItem>
                     ))}
                   </SelectContent>
