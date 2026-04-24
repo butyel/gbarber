@@ -194,7 +194,7 @@ export default function AgendaPage() {
         data: formData.data,
         hora: formData.hora,
         status: formData.status,
-        createdAt: serverTimestamp(),
+        createdAt: new Date(`${formData.data}T${formData.hora}:00`),
       });
 
       toast({ title: "Agendamento realizado com sucesso!" });

@@ -183,7 +183,7 @@ function AgendarContent() {
         data: dataSelecionada,
         hora: horaSelecionada,
         status: "agendado",
-        createdAt: serverTimestamp(),
+        createdAt: new Date(`${dataSelecionada}T${horaSelecionada}:00`),
       });
 
       setSucesso(true);
