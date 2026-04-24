@@ -43,6 +43,8 @@ export default function AtendimentosPage() {
     valor: 0,
     produtoId: "",
     produtoQuantidade: 1,
+    data: new Date().toISOString().split("T")[0],
+    hora: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
   });
 
   useEffect(() => {
@@ -138,7 +140,10 @@ export default function AtendimentosPage() {
         servicoNome: servico?.nome || "",
         valor: formData.valor,
         comissao,
-        createdAt: new Date(),
+        data: formData.data,
+        hora: formData.hora,
+        status: "finalizado",
+        createdAt: new Date(`${formData.data}T${formData.hora}:00`),
       };
 
       if (formData.produtoId && formData.produtoQuantidade > 0) {
@@ -161,7 +166,16 @@ export default function AtendimentosPage() {
 
       toast({ title: "Atendimento criado com sucesso!" });
       setIsModalOpen(false);
-      setFormData({ cliente: "", barbeiroId: "", servicoId: "", valor: 0, produtoId: "", produtoQuantidade: 1 });
+      setFormData({ 
+        cliente: "", 
+        barbeiroId: "", 
+        servicoId: "", 
+        valor: 0, 
+        produtoId: "", 
+        produtoQuantidade: 1,
+        data: new Date().toISOString().split("T")[0],
+        hora: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+      });
       fetchData();
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erro ao criar atendimento", description: error.message });
@@ -264,34 +278,53 @@ export default function AtendimentosPage() {
         }
       />
 
-      <div className="p-6 space-y-6">
-        <div className="flex gap-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="p-6 space-y-8 bg-mesh min-h-screen">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-slide-up">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-primary">Histórico de Atendimentos</h1>
+            <p className="text-muted-foreground font-medium mt-1">Gerencie e acompanhe todos os serviços realizados.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {lastAtendimento && (
+              <Button variant="outline" onClick={handleRepeatLast} title="Repetir último serviço" className="rounded-xl border-accent/30 text-accent hover:bg-accent/10">
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Repetir Último
+              </Button>
+            )}
+            <Button onClick={() => setIsModalOpen(true)} className="rounded-xl shadow-lg shadow-primary/20">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Atendimento
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex gap-4 animate-slide-up" style={{ animationDelay: '100ms' }}>
+          <div className="relative flex-1 max-w-sm group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
             <Input 
               placeholder="Buscar por cliente, barbeiro..." 
-              className="pl-10"
+              className="pl-10 rounded-xl border-none glass-card focus-visible:ring-primary shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Atendimentos</CardTitle>
+        <Card className="glass-card border-none overflow-hidden animate-slide-up" style={{ animationDelay: '200ms' }}>
+          <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md">
+            <CardTitle>Listagem Geral</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Barbeiro</TableHead>
-                  <TableHead>Serviço</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead></TableHead>
+              <TableHeader className="bg-muted/30">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="font-bold text-primary py-4">Data</TableHead>
+                  <TableHead className="font-bold text-primary">Cliente</TableHead>
+                  <TableHead className="font-bold text-primary">Barbeiro</TableHead>
+                  <TableHead className="font-bold text-primary">Serviço</TableHead>
+                  <TableHead className="font-bold text-primary">Valor Total</TableHead>
+                  <TableHead className="font-bold text-primary">Status</TableHead>
+                  <TableHead className="font-bold text-primary text-right px-6">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -314,36 +347,54 @@ export default function AtendimentosPage() {
                   </TableRow>
                 ) : (
                   filteredAppointments.map((appointment) => (
-                    <TableRow key={appointment.id}>
-                      <TableCell>{formatDate(appointment.createdAt)}</TableCell>
-                      <TableCell className="font-medium">{appointment.cliente}</TableCell>
-                      <TableCell>{appointment.barbeiroNome}</TableCell>
-                      <TableCell>{appointment.servicoNome}</TableCell>
-                      <TableCell>{formatCurrency(appointment.valor + (appointment.produtoVendido?.valor || 0))}</TableCell>
+                    <TableRow key={appointment.id} className="group hover:bg-muted/10 transition-all">
+                      <TableCell className="py-4 font-medium text-muted-foreground">{formatDate(appointment.createdAt)}</TableCell>
                       <TableCell>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          appointment.status === "finalizado" ? "bg-green-100 text-green-700" : 
-                          appointment.status === "cancelado" ? "bg-red-100 text-red-700" : 
-                          "bg-blue-100 text-blue-700"
-                        }`}>
+                        <div className="font-bold text-primary">{appointment.cliente}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-black uppercase border border-primary/5">
+                            {appointment.barbeiroNome.charAt(0)}
+                          </div>
+                          <span className="font-medium">{appointment.barbeiroNome}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="px-3 py-1 rounded-full bg-accent/10 text-accent text-[10px] font-black uppercase tracking-wider">
+                          {appointment.servicoNome}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-black text-primary">
+                        {formatCurrency(appointment.valor + (appointment.produtoVendido?.valor || 0))}
+                      </TableCell>
+                      <TableCell>
+                        <span className={cn(
+                          "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                          appointment.status === "finalizado" 
+                            ? "bg-success/10 text-success border-success/20" 
+                            : appointment.status === "cancelado" 
+                              ? "bg-destructive/10 text-destructive border-destructive/20" 
+                              : "bg-blue-500/10 text-blue-600 border-blue-500/20 shadow-sm shadow-blue-500/5 animate-pulse"
+                        )}>
                           {appointment.status || "agendado"}
                         </span>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
+                      <TableCell className="text-right px-6">
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           {appointment.status !== "finalizado" && (
-                            <Button variant="ghost" size="icon" onClick={() => handleFinalize(appointment.id)} title="Finalizar e Contabilizar">
-                              <Check className="h-4 w-4 text-green-600" />
+                            <Button variant="ghost" size="icon" onClick={() => handleFinalize(appointment.id)} className="h-8 w-8 rounded-lg text-success hover:bg-success/10">
+                              <Check className="h-4 w-4" />
                             </Button>
                           )}
-                          <Button variant="ghost" size="icon" onClick={() => handleViewDetails(appointment)} title="Ver detalhes">
+                          <Button variant="ghost" size="icon" onClick={() => handleViewDetails(appointment)} className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-muted">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(appointment)} title="Editar">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(appointment)} className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-muted">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(appointment.id)} title="Excluir">
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(appointment.id)} className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10">
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -420,6 +471,24 @@ export default function AtendimentosPage() {
                 {clientes.length === 0 && (
                   <p className="text-xs text-muted-foreground">Nenhum cliente cadastrado. Vá na página Clientes para adicionar.</p>
                 )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Data</Label>
+                  <Input 
+                    type="date" 
+                    value={formData.data}
+                    onChange={(e) => setFormData({ ...formData, data: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Hora</Label>
+                  <Input 
+                    type="time" 
+                    value={formData.hora}
+                    onChange={(e) => setFormData({ ...formData, hora: e.target.value })}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Barbeiro</Label>

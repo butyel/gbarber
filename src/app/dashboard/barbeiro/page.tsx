@@ -16,6 +16,8 @@ import type { Atendimento } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 
+import { StatCard } from "@/components/ui/stat-card";
+
 function BarbearDashboard() {
   const searchParams = useSearchParams();
   const barbeariaId = searchParams.get("barbearia");
@@ -53,24 +55,17 @@ function BarbearDashboard() {
       ));
 
       const appointments = appointmentsSnap.docs
-        .filter(d => ["agendado", "em_atendimento"].includes(d.data().status))
+        .filter(d => ["agendado", "em_atendimento", "finalizado"].includes(d.data().status))
         .map(d => ({
           id: d.id,
           ...d.data(),
           createdAt: d.data().createdAt?.toDate() || new Date(),
         })) as Atendimento[];
-
-      setAgenda(appointments);
 
       const today = getToday();
-      const todayAppts = appointmentsSnap.docs
-        .filter(d => d.data().data === today)
-        .map(d => ({
-          id: d.id,
-          ...d.data(),
-          createdAt: d.data().createdAt?.toDate() || new Date(),
-        })) as Atendimento[];
-
+      const todayAppts = appointments.filter(a => a.data === today);
+      
+      setAgenda(appointments.filter(a => a.status !== "finalizado"));
       setTodayAppointments(todayAppts.filter(a => a.status !== "cancelado"));
     } catch (error) {
       console.error("Error:", error);
@@ -100,9 +95,8 @@ function BarbearDashboard() {
     if (!barbeariaId) return;
     setSubmitting(true);
     try {
-      const apt = agenda.find(a => a.id === id);
       await updateDoc(doc(db, `barbearias/${barbeariaId}/atendimentos`, id), {
-        status: "concluido",
+        status: "finalizado",
         completedAt: serverTimestamp(),
       });
       toast({ title: "Atendimento concluído!" });
@@ -132,171 +126,194 @@ function BarbearDashboard() {
   };
 
   const comissaoHoje = todayAppointments
-    .filter(a => a.status === "concluido")
+    .filter(a => a.status === "finalizado")
     .reduce((sum, a) => sum + a.comissao, 0);
 
-  const comissaoTotal = agenda
-    .filter(a => a.status === "concluido")
+  const comissaoTotal = todayAppointments
+    .filter(a => a.status === "finalizado")
     .reduce((sum, a) => sum + a.comissao, 0);
 
   const proximos = agenda.filter(a => a.status === "agendado");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-primary text-white p-4">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-bold flex items-center gap-2">
-              <Scissors className="h-6 w-6" />
-              {barbeiroNome}
-            </h1>
-            <p className="text-sm opacity-80">Área do Barbeiro</p>
+    <div className="min-h-screen bg-mesh">
+      <div className="bg-primary text-white border-b border-white/10 relative overflow-hidden">
+        {/* Glow effect */}
+        <div className="absolute -right-20 -top-20 w-64 h-64 bg-accent/20 rounded-full blur-[80px]" />
+        
+        <div className="max-w-5xl mx-auto p-8 relative z-10">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="animate-slide-up">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-accent text-primary flex items-center justify-center font-black text-2xl shadow-lg shadow-accent/20">
+                  {barbeiroNome.charAt(0)}
+                </div>
+                <div>
+                  <h1 className="text-3xl font-black tracking-tight flex items-center gap-2">
+                    {barbeiroNome}
+                    <span className="text-accent text-4xl leading-none">.</span>
+                  </h1>
+                  <p className="text-accent/70 font-bold uppercase tracking-widest text-[10px] mt-0.5">Staff Portal & Dashboard</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 animate-slide-up" style={{ animationDelay: '50ms' }}>
+              <div className="text-right hidden md:block mr-2">
+                <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Sessão Ativa</p>
+                <p className="font-bold">{format(new Date(), "dd 'de' MMMM", { locale: ptBR })}</p>
+              </div>
+              <Link href="/login">
+                <Button variant="ghost" size="icon" className="h-12 w-12 rounded-xl border border-white/10 hover:bg-white/10 text-white transition-all hover:scale-105 active:scale-95">
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
           </div>
-          <Link href="/login">
-            <Button variant="ghost" size="sm" className="text-white hover:text-white hover:bg-white/20">
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </Link>
         </div>
       </div>
 
-      <div className="p-4 max-w-4xl mx-auto space-y-4">
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Comissão Hoje</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? <Skeleton className="h-8 w-20" /> : (
-                <div className="text-2xl font-bold text-green-600">{formatCurrency(comissaoHoje)}</div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Atendimentos Hoje</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? <Skeleton className="h-8 w-10" /> : (
-                <div className="text-2xl font-bold">{todayAppointments.length}</div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Comissão</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? <Skeleton className="h-8 w-20" /> : (
-                <div className="text-2xl font-bold">{formatCurrency(comissaoTotal)}</div>
-              )}
-            </CardContent>
-          </Card>
+      <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-8">
+        <div className="grid gap-6 md:grid-cols-3">
+          <StatCard 
+            title="Minha Comissão Hoje"
+            value={formatCurrency(comissaoHoje)}
+            icon={<DollarSign className="h-5 w-5" />}
+            valueClassName="text-success"
+          />
+          <StatCard 
+            title="Atendimentos Hoje"
+            value={todayAppointments.length}
+            icon={<Scissors className="h-5 w-5" />}
+          />
+          <StatCard 
+            title="Próximos"
+            value={proximos.length}
+            icon={<Calendar className="h-5 w-5" />}
+          />
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Agenda de Hoje
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))}
-              </div>
-            ) : todayAppointments.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                Nenhum atendimento hoje
-              </p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Horário</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Serviço</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {todayAppointments.map((apt) => (
-                    <TableRow key={apt.id}>
-                      <TableCell className="font-medium">{apt.hora}</TableCell>
-                      <TableCell>{apt.cliente}</TableCell>
-                      <TableCell>{apt.servicoNome}</TableCell>
-                      <TableCell>{formatCurrency(apt.valor)}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
-                          apt.status === "agendado" ? "bg-yellow-100 text-yellow-800" :
-                          apt.status === "em_atendimento" ? "bg-blue-100 text-blue-800" :
-                          apt.status === "concluido" ? "bg-green-100 text-green-800" :
-                          "bg-red-100 text-red-800"
-                        }`}>
-                          {apt.status === "agendado" && <Clock className="h-3 w-3 mr-1" />}
-                          {apt.status === "em_atendimento" && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
-                          {apt.status === "concluido" && <Check className="h-3 w-3 mr-1" />}
-                          {apt.status === "cancelado" && <X className="h-3 w-3 mr-1" />}
-                          {apt.status === "agendado" ? "Agendado" :
-                           apt.status === "em_atendimento" ? "Em andamento" :
-                           apt.status === "concluido" ? "Concluído" : "Cancelado"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {apt.status === "agendado" && (
-                          <div className="flex gap-1">
-                            <Button size="sm" onClick={() => iniciarAtendimento(apt.id)}>
-                              Iniciar
-                            </Button>
-                            <Button size="sm" variant="destructive" onClick={() => cancelarAtendimento(apt.id)}>
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        )}
-                        {apt.status === "em_atendimento" && (
-                          <Button size="sm" onClick={() => concluirAtendimento(apt.id)}>
-                            Concluir
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-
-        {proximos.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Próximos Agendamentos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {proximos.slice(0, 5).map(apt => (
-                  <div key={apt.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium">{apt.cliente}</p>
-                      <p className="text-sm text-muted-foreground">{apt.servicoNome}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium">{apt.hora}</p>
-                      <p className="text-sm text-muted-foreground">{apt.data}</p>
-                    </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="glass-card border-none overflow-hidden animate-slide-up" style={{ animationDelay: '100ms' }}>
+              <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md flex flex-row items-center justify-between">
+                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-accent" />
+                  Agenda do Dia
+                </CardTitle>
+                <div className="px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest">
+                  {todayAppointments.length} agendados
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                {loading ? (
+                  <div className="p-6 space-y-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+                    ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                ) : todayAppointments.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+                    <Calendar className="h-12 w-12 opacity-10" />
+                    <p className="font-bold uppercase tracking-widest text-xs">Nenhum atendimento para hoje</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-white/10">
+                    {todayAppointments.map((apt) => (
+                      <div key={apt.id} className="p-6 flex flex-col md:flex-row items-center justify-between gap-4 group hover:bg-muted/10 transition-all">
+                        <div className="flex items-center gap-6 w-full md:w-auto">
+                          <div className="flex flex-col items-center justify-center bg-primary text-white p-3 rounded-2xl min-w-[70px] shadow-lg shadow-primary/20">
+                            <span className="text-xl font-black">{apt.hora}</span>
+                            <span className="text-[10px] font-bold opacity-70 uppercase tracking-tight">Hoje</span>
+                          </div>
+                          <div>
+                            <p className="text-xl font-black text-primary tracking-tight">{apt.cliente}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="px-2 py-0.5 rounded-lg bg-accent/10 text-accent text-[10px] font-black uppercase tracking-wider">
+                                {apt.servicoNome}
+                              </span>
+                              <span className="text-muted-foreground font-bold text-xs">
+                                {formatCurrency(apt.valor)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                          <span className={cn(
+                            "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                            apt.status === "agendado" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                            apt.status === "em_atendimento" ? "bg-blue-100 text-blue-800 border-blue-200 animate-pulse" :
+                            apt.status === "finalizado" ? "bg-green-100 text-green-800 border-green-200" :
+                            "bg-red-100 text-red-800 border-red-200"
+                          )}>
+                            {apt.status === "em_atendimento" ? "Em andamento" : apt.status}
+                          </span>
+                          
+                          <div className="flex items-center gap-2">
+                            {apt.status === "agendado" && (
+                              <>
+                                <Button onClick={() => iniciarAtendimento(apt.id)} disabled={submitting} className="rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+                                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Iniciar"}
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => cancelarAtendimento(apt.id)} disabled={submitting} className="h-10 w-10 rounded-xl text-destructive hover:bg-destructive/10">
+                                  <X className="h-5 w-5" />
+                                </Button>
+                              </>
+                            )}
+                            {apt.status === "em_atendimento" && (
+                              <Button onClick={() => concluirAtendimento(apt.id)} disabled={submitting} className="rounded-xl font-bold bg-success hover:bg-success/90 shadow-lg shadow-success/20 hover:scale-105 active:scale-95 transition-all">
+                                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Concluir"}
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
+            <Card className="glass-card border-none overflow-hidden group">
+              <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md">
+                <CardTitle className="text-sm font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-accent" />
+                  Próximos Dias
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                {proximos.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8 text-xs font-bold uppercase opacity-50">Nenhum agendamento futuro</p>
+                ) : (
+                  <div className="space-y-3">
+                    {proximos.slice(0, 5).map(apt => (
+                      <div key={apt.id} className="p-4 rounded-2xl bg-white border border-white/20 shadow-sm group-hover:shadow-md transition-all">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-black text-primary uppercase tracking-tight">{apt.cliente}</p>
+                            <p className="text-[10px] text-muted-foreground font-bold mt-0.5">{apt.servicoNome}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-black text-accent text-sm leading-none">{apt.hora}</p>
+                            <p className="text-[9px] text-muted-foreground font-black uppercase tracking-tight mt-1">{apt.data}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <div className="p-6 rounded-3xl bg-primary text-white shadow-2xl relative overflow-hidden group">
+              <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-all duration-500" />
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Mensagem do Dia</p>
+              <h3 className="text-xl font-black mt-3 leading-tight tracking-tight">"A excelência não é um ato, é um hábito. Corte com paixão." ✂️</h3>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -304,7 +321,7 @@ function BarbearDashboard() {
 
 export default function BarbearPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-mesh"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}>
       <BarbearDashboard />
     </Suspense>
   );

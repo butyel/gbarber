@@ -180,8 +180,26 @@ export default function DashboardPage() {
         }
       />
 
-      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <div className="p-4 md:p-8 space-y-8 bg-mesh min-h-screen">
+        {/* Welcome Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-slide-up">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-primary flex items-center gap-3">
+              Olá, {user?.nome?.split(' ')[0] || 'Barbeiro'} <span className="animate-wave text-4xl">👋</span>
+            </h1>
+            <p className="text-muted-foreground font-medium mt-1">
+              {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })} — Que tal um café e alguns cortes hoje? ☕
+            </p>
+          </div>
+          <div className="flex items-center gap-3 bg-white/50 backdrop-blur-md p-1.5 rounded-2xl border border-white shadow-sm">
+            <Button onClick={() => router.push("/dashboard/atendimentos")} className="rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Atendimento
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <StatCard
             title="Faturamento Hoje"
             value={formatCurrency(stats.faturamentoDia)}
@@ -266,27 +284,33 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Faturamento últimos 7 dias</CardTitle>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
+          <Card className="glass-card border-none overflow-hidden group">
+            <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md">
+              <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-accent" />
+                Faturamento últimos 7 dias
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6 transition-all duration-500 group-hover:scale-[1.01]">
               {loading ? (
-                <Skeleton className="h-40 w-full" />
+                <Skeleton className="h-48 w-full rounded-2xl" />
               ) : (
                 <FaturamentoChart data={faturamentoSemanal} />
               )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Atendimentos por hora (Hoje)</CardTitle>
+          <Card className="glass-card border-none overflow-hidden group">
+            <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md">
+              <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" />
+                Atendimentos por hora (Hoje)
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6 transition-all duration-500 group-hover:scale-[1.01]">
               {loading ? (
-                <Skeleton className="h-40 w-full" />
+                <Skeleton className="h-48 w-full rounded-2xl" />
               ) : (
                 <AtendimentosChart data={atendimentosHora} empty={atendimentosHora.length === 0} />
               )}
@@ -294,47 +318,64 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <Card className="overflow-x-auto">
-          <CardHeader>
-            <CardTitle>Últimos Atendimentos</CardTitle>
+        <Card className="glass-card border-none overflow-hidden animate-slide-up" style={{ animationDelay: '200ms' }}>
+          <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md flex flex-row items-center justify-between">
+            <CardTitle className="text-lg font-bold">Últimos Atendimentos</CardTitle>
+            <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard/atendimentos")} className="text-xs font-bold uppercase tracking-wider text-accent hover:text-accent/80">
+              Ver Todos
+            </Button>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Barbeiro</TableHead>
-                    <TableHead>Serviço</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Hora</TableHead>
+                <TableHeader className="bg-muted/30">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="font-bold text-primary py-4">Cliente</TableHead>
+                    <TableHead className="font-bold text-primary">Barbeiro</TableHead>
+                    <TableHead className="font-bold text-primary">Serviço</TableHead>
+                    <TableHead className="font-bold text-primary">Valor</TableHead>
+                    <TableHead className="font-bold text-primary">Hora</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     Array.from({ length: 5 }).map((_, i) => (
                       <TableRow key={i}>
+                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                       </TableRow>
                     ))
                   ) : recentAppointments.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                        Nenhum atendimento hoje
+                      <TableCell colSpan={5} className="text-center py-16 text-muted-foreground font-medium">
+                        <div className="flex flex-col items-center gap-2">
+                          <Users className="h-12 w-12 opacity-20" />
+                          Nenhum atendimento realizado hoje
+                        </div>
                       </TableCell>
                     </TableRow>
                   ) : (
                     recentAppointments.map((appointment) => (
-                      <TableRow key={appointment.id}>
-                        <TableCell className="font-medium">{appointment.cliente}</TableCell>
-                        <TableCell className="whitespace-nowrap">{appointment.barbeiroNome}</TableCell>
-                        <TableCell className="whitespace-nowrap">{appointment.servicoNome}</TableCell>
-                        <TableCell>{formatCurrency(appointment.valor)}</TableCell>
-                        <TableCell>{formatTime(appointment.createdAt)}</TableCell>
+                      <TableRow key={appointment.id} className="group hover:bg-muted/20 transition-colors">
+                        <TableCell className="font-bold text-primary py-4">{appointment.cliente}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-black uppercase">
+                              {appointment.barbeiroNome.charAt(0)}
+                            </div>
+                            <span className="font-medium">{appointment.barbeiroNome}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-bold">
+                            {appointment.servicoNome}
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-black text-primary">{formatCurrency(appointment.valor)}</TableCell>
+                        <TableCell className="text-muted-foreground font-medium">{formatTime(appointment.createdAt)}</TableCell>
                       </TableRow>
                     ))
                   )}

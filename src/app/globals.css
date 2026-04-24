@@ -32,14 +32,14 @@
   --color-success: #059669;
   --color-info: #C9A84C;
 
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: 'Outfit', 'Inter', system-ui, sans-serif;
   
   --radius-xl: 1.5rem;
   --radius-2xl: 2rem;
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.85rem;
 }
 
 body {
@@ -47,9 +47,17 @@ body {
   color: var(--color-foreground);
   font-family: var(--font-sans);
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Clean background */
+/* Premium Backgrounds */
+.bg-mesh {
+  background-color: #F8F9FA;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(201, 168, 76, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(26, 46, 33, 0.05) 0px, transparent 50%);
+}
+
 .bg-grid-pattern {
   background-image: 
     linear-gradient(rgba(26, 46, 33, 0.03) 1px, transparent 1px),
@@ -58,70 +66,100 @@ body {
 }
 
 .bg-premium-gradient {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F8F9FA 100%);
+  background: linear-gradient(135deg, #1A2E21 0%, #2D4F38 100%);
 }
 
-.bg-vertical-lines {
-  background-image: repeating-linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 0px,
-    rgba(255, 255, 255, 0.03) 1px,
-    transparent 1px,
-    transparent 100px
-  );
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #C9A84C 0%, #EAD9B5 100%);
 }
 
 /* Glassmorphism */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid #E5E7E6;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(229, 231, 230, 0.5);
 }
 
 .glass-card {
-  background: #FFFFFF;
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid #E5E7E6;
-  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(229, 231, 230, 0.8);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Glow Effects */
-.glow-blue {
-  box-shadow: 0 0 20px rgba(201, 168, 76, 0.4);
+.glow-gold {
+  box-shadow: 0 0 25px rgba(201, 168, 76, 0.25);
 }
 
-.glow-cyan {
-  box-shadow: 0 0 20px rgba(26, 46, 33, 0.3);
+.glow-green {
+  box-shadow: 0 0 25px rgba(26, 46, 33, 0.15);
 }
 
-.text-glow {
-  text-shadow: 0 0 10px rgba(201, 168, 76, 0.3);
+.text-gold-gradient {
+  background: linear-gradient(135deg, #C9A84C 0%, #8E732E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Animations */
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
 }
 
 .animate-float {
-  animation: float 4s ease-in-out infinite;
+  animation: float 5s ease-in-out infinite;
 }
 
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.5; filter: blur(40px); }
-  50% { opacity: 0.8; filter: blur(60px); }
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.glow-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(40px);
-  z-index: -1;
-  animation: pulse-glow 6s infinite alternate;
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out forwards;
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out forwards;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  75% { transform: rotate(-15deg); }
+}
+
+.animate-wave {
+  display: inline-block;
+  animation: wave 2s ease-in-out infinite;
+  transform-origin: 70% 70%;
 }
 
 * {

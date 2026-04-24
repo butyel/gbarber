@@ -65,48 +65,38 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-[#1A2E21] text-[#C9A84C] flex flex-col transition-all duration-300 border-r-2 border-r-[#C9A84C]/30",
-          isCollapsed ? "w-16" : "w-64",
+          "fixed left-0 top-0 z-40 h-screen bg-[#1A2E21] text-[#C9A84C] flex flex-col transition-all duration-500 ease-in-out border-r border-white/5",
+          isCollapsed ? "w-20" : "w-72",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
-        style={{ boxShadow: "inset -4px 0 20px rgba(201, 168, 76, 0.15)" }}
       >
-        <div className="flex items-center justify-between p-4 border-b border-[#C9A84C]/30">
-          {mobileOpen && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setMobileOpen(false)}
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          )}
+        {/* Subtle Background pattern */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none bg-grid-pattern" />
+        
+        <div className="flex items-center justify-between p-6 border-b border-white/10 relative z-10">
           {!isCollapsed && (
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-[#C9A84C] via-[#D4AF37] to-[#C9A84C] bg-clip-text text-transparent">GBarber</h1>
-              <p className="text-xs text-[#C9A84C]/70 mt-1 truncate max-w-[150px]">
-                {isAdmin ? "Painel Admin" : user?.nome || "Minha Barbearia"}
-              </p>
+            <div className="animate-scale-in">
+              <h1 className="text-2xl font-black tracking-tighter text-white flex items-center gap-2">
+                <span className="w-8 h-8 rounded-lg bg-accent text-primary flex items-center justify-center text-xl">G</span>
+                GBarber
+              </h1>
+              <div className="flex items-center gap-1.5 mt-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-accent/80">
+                  {isAdmin ? "Administrator" : user?.nome || "Premium Studio"}
+                </p>
+              </div>
             </div>
           )}
           {isCollapsed && (
-            <div className="flex-1 flex justify-center">
-              <span className="font-bold text-lg bg-gradient-to-r from-[#C9A84C] via-[#D4AF37] to-[#C9A84C] bg-clip-text text-transparent">GB</span>
+            <div className="flex-1 flex justify-center animate-scale-in">
+              <span className="w-10 h-10 rounded-xl bg-accent text-primary flex items-center justify-center font-black text-xl shadow-lg shadow-accent/20">G</span>
             </div>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn("text-muted-foreground hover:text-primary-foreground", mobileOpen && "md:hidden")}
-            onClick={onToggle}
-          >
-            <ChevronLeft className={cn("h-5 w-5 transition-transform", isCollapsed && "rotate-180")} />
-          </Button>
         </div>
 
-        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-          {allItems.map((item) => {
+        <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto relative z-10 custom-scrollbar">
+          {allItems.map((item, idx) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
             return (
@@ -114,43 +104,48 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative",
                   isActive
-                    ? "bg-[#C9A84C] text-[#1A2E21] font-semibold"
-                    : "text-[#C9A84C]/70 hover:bg-[#C9A84C]/10 hover:text-[#C9A84C]",
-                  isCollapsed && "justify-center"
+                    ? "bg-accent text-primary shadow-lg shadow-accent/20"
+                    : "text-white/60 hover:bg-white/5 hover:text-white",
+                  isCollapsed && "justify-center px-0"
                 )}
                 onClick={() => setMobileOpen(false)}
                 title={isCollapsed ? item.label : undefined}
+                style={{ animationDelay: `${idx * 40}ms` }}
               >
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                {!isCollapsed && <span className="truncate">{item.label}</span>}
+                <Icon className={cn("h-5 w-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110", isActive && "scale-110")} />
+                {!isCollapsed && <span className="truncate tracking-tight">{item.label}</span>}
+                {isActive && !isCollapsed && (
+                  <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-primary" />
+                )}
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-2 border-t border-[#C9A84C]/30">
+        <div className="p-4 border-t border-white/10 relative z-10 bg-[#1A2E21]/50 backdrop-blur-md">
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-start text-muted-foreground hover:bg-destructive hover:text-destructive-foreground",
-              isCollapsed && "justify-center px-2"
+              "w-full justify-start text-white/50 hover:bg-destructive/10 hover:text-destructive transition-all duration-300 rounded-xl h-12",
+              isCollapsed && "justify-center px-0"
             )}
             onClick={logout}
           >
             <LogOut className="h-5 w-5" />
-            {!isCollapsed && <span className="ml-3">Sair</span>}
+            {!isCollapsed && <span className="ml-3 font-bold tracking-tight">Sair da Conta</span>}
           </Button>
         </div>
 
+        {/* Floating Toggle Button */}
         <Button
           variant="ghost"
           size="icon"
-          className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-accent text-primary hover:bg-accent/80 shadow-md hidden md:flex items-center justify-center"
+          className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-accent text-primary hover:bg-white shadow-xl hidden md:flex items-center justify-center border border-white/20 transition-all duration-500 hover:scale-110"
           onClick={onToggle}
         >
-          <ChevronLeft className={cn("h-3 w-3 transition-transform", isCollapsed && "rotate-180")} />
+          <ChevronLeft className={cn("h-3.5 w-3.5 transition-transform duration-500", isCollapsed && "rotate-180")} />
         </Button>
       </aside>
 

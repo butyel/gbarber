@@ -127,12 +127,12 @@ export default function PlanosPage() {
   const faturamentoEstimado = planos.reduce((acc, p) => acc + (p.preco * getClientesNoPlano(p.id)), 0);
 
   return (
-    <div className="min-h-screen bg-background pb-12">
+    <div className="min-h-screen bg-mesh pb-12">
       <Topbar 
         action={
           <Button 
             onClick={() => { setFormData({ nome: "", preco: 0, tipo: "mensal", descricao: "" }); setEditingId(null); setIsModalOpen(true); }}
-            className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg glow-blue transition-all"
+            className="rounded-xl shadow-lg shadow-primary/20"
           >
             <Plus className="h-4 w-4 mr-2" />
             Novo Plano
@@ -140,76 +140,62 @@ export default function PlanosPage() {
         }
       />
 
-      <div className="bg-grid-pattern border-b border-border/50">
-        <div className="p-6 max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                <Sparkles className="h-6 w-6 text-accent" />
-                Gestão de Planos
-              </h2>
-              <p className="text-muted-foreground mt-1">
-                Configure e gerencie as assinaturas recorrentes dos seus clientes.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard 
-              title="Total de Planos"
-              value={planos.length}
-              icon={<Tag className="h-4 w-4" />}
-              description="Modelos de assinatura ativos"
-              loading={loading}
-              className="glass-card border-accent/20"
-            />
-            <StatCard 
-              title="Assinantes Ativos"
-              value={totalAssinantes}
-              icon={<Users className="h-4 w-4" />}
-              description="Clientes vinculados a planos"
-              loading={loading}
-              className="glass-card border-accent/20"
-            />
-            <StatCard 
-              title="Faturamento Mensal (Est.)"
-              value={`R$ ${faturamentoEstimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-              icon={<TrendingUp className="h-4 w-4 text-green-500" />}
-              description="Baseado nas assinaturas atuais"
-              loading={loading}
-              valueClassName="text-green-600"
-              className="glass-card border-accent/20"
-            />
+      <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-slide-up">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-primary flex items-center gap-2">
+              <Sparkles className="h-6 w-6 text-accent" />
+              Gestão de Planos
+            </h1>
+            <p className="text-muted-foreground font-medium mt-1">
+              Configure e gerencie as assinaturas recorrentes dos seus clientes.
+            </p>
           </div>
         </div>
-      </div>
 
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up" style={{ animationDelay: '50ms' }}>
+          <StatCard 
+            title="Total de Planos"
+            value={planos.length}
+            icon={<Tag className="h-4 w-4" />}
+            description="Modelos ativos"
+            loading={loading}
+          />
+          <StatCard 
+            title="Assinantes Ativos"
+            value={totalAssinantes}
+            icon={<Users className="h-4 w-4" />}
+            description="Clientes vinculados"
+            loading={loading}
+          />
+          <StatCard 
+            title="Faturamento Mensal (Est.)"
+            value={faturamentoEstimado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            icon={<TrendingUp className="h-4 w-4 text-success" />}
+            description="Projeção baseada nos planos"
+            loading={loading}
+            valueClassName="text-success"
+          />
+        </div>
+
+        <div className="flex items-center gap-4 animate-slide-up" style={{ animationDelay: '100ms' }}>
           <div className="relative flex-1 max-w-sm group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-accent" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
             <Input 
               placeholder="Buscar por nome do plano..." 
-              className="pl-10 bg-card border-border/50 focus:border-accent/50 focus:ring-accent/20 transition-all"
+              className="pl-10 rounded-xl border-none glass-card focus-visible:ring-primary shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
 
-        <Card className="glass-card overflow-hidden border-border/50 shadow-xl">
-          <CardHeader className="bg-muted/30 pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-accent" />
-                  Lista de Planos Disponíveis
-                </CardTitle>
-                <CardDescription>
-                  Visualize e edite os detalhes de cada oferta.
-                </CardDescription>
-              </div>
-            </div>
+        <Card className="glass-card border-none overflow-hidden animate-slide-up" style={{ animationDelay: '150ms' }}>
+          <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md">
+            <CardTitle className="text-lg font-bold flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-accent" />
+              Lista de Planos Disponíveis
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
