@@ -290,12 +290,14 @@ export default function ClientesPage() {
                         ) : "-"}
                       </TableCell>
                       <TableCell>
-                        {cliente.planoId ? (
+                        {cliente.planoId && cliente.planoId !== "none" ? (
                           <div className="flex items-center gap-1 text-blue-600 font-medium">
                             <CreditCard className="h-3 w-3" />
                             {planos.find(p => p.id === cliente.planoId)?.nome || "Plano"}
                           </div>
-                        ) : "-"}
+                        ) : (
+                          <span className="text-muted-foreground italic text-xs">Sem Plano</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">{cliente.observacoes || "-"}</TableCell>
                       <TableCell className="flex gap-2">

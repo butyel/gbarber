@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { BarChart3, TrendingUp, Calendar } from "lucide-react";
+import { BarChart3, TrendingUp, Calendar, Search } from "lucide-react";
 import type { Atendimento, Servico } from "@/types";
 
 interface RelatorioData {
@@ -25,25 +25,61 @@ export default function RelatoriosPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [periodo, setPeriodo] = useState("7");
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
   const [data, setData] = useState<RelatorioData | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    fetchData();
+    if (periodo !== "custom") {
+      fetchData();
+    }
   }, [user, periodo]);
+
+  const handleCustomSearch = () => {
+    if (!dataInicio || !dataFim) {
+      alert("Selecione ambas as datas");
+      return;
+    }
+    const start = new Date(dataInicio);
+    const end = new Date(dataFim);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays > 90) {
+      alert("O intervalo máximo é de 90 dias");
+      return;
+    }
+    fetchData();
+  };
 
   const fetchData = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      const dias = parseInt(periodo);
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - dias);
+      let startDate = new Date();
+      let endDate = new Date();
+      
+      if (periodo === "custom") {
+        startDate = new Date(dataInicio + "T00:00:00");
+        endDate = new Date(dataFim + "T23:59:59");
+      } else {
+        const dias = parseInt(periodo);
+        startDate.setDate(startDate.getDate() - dias);
+      }
+
+      const constraints = [
+        where("createdAt", ">=", startDate),
+        orderBy("createdAt", "desc")
+      ];
+      
+      if (periodo === "custom") {
+        constraints.push(where("createdAt", "<=", endDate));
+      }
 
       const appointmentsSnap = await getDocs(query(
         collection(db, `barbearias/${user.id}/atendimentos`),
-        where("createdAt", ">=", startDate),
-        orderBy("createdAt", "desc")
+        ...constraints
       ));
 
       const servicosSnap = await getDocs(query(
@@ -76,7 +112,6 @@ export default function RelatoriosPage() {
 
       const diasArray = Object.entries(diasAgrupados)
         .sort(([a], [b]) => a.localeCompare(b))
-        .slice(-7)
         .map(([data, valores]) => ({
           data,
           faturamento: valores.faturamento,
@@ -147,12 +182,41 @@ export default function RelatoriosPage() {
               <SelectItem value="60">Últimos 2 meses</SelectItem>
               <SelectItem value="90">Últimos 3 meses</SelectItem>
               <SelectItem value="180">Últimos 6 meses</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
             </SelectContent>
           </Select>
         }
       />
 
       <div className="p-6 space-y-6">
+        {periodo === "custom" && (
+          <Card className="p-4 glass-card border-accent/20">
+            <div className="flex flex-col sm:flex-row items-end gap-4">
+              <div className="grid gap-2">
+                <label className="text-xs font-medium uppercase tracking-wider text-accent/70">Data Início</label>
+                <input 
+                  type="date" 
+                  value={dataInicio} 
+                  onChange={(e) => setDataInicio(e.target.value)}
+                  className="bg-background border border-white/10 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+                />
+              </div>
+              <div className="grid gap-2">
+                <label className="text-xs font-medium uppercase tracking-wider text-accent/70">Data Fim</label>
+                <input 
+                  type="date" 
+                  value={dataFim} 
+                  onChange={(e) => setDataFim(e.target.value)}
+                  className="bg-background border border-white/10 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+                />
+              </div>
+              <Button onClick={handleCustomSearch} className="bg-accent text-primary hover:bg-accent/90">
+                <Search className="h-4 w-4 mr-2" />
+                Filtrar Período
+              </Button>
+            </div>
+          </Card>
+        )}
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

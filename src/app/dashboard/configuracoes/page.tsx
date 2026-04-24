@@ -407,7 +407,7 @@ export default function ConfiguracoesPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">GBarber v1.0</span> - Sistema de Gestão de Barbearia
+                <span className="font-semibold text-foreground">GBarber v2.3</span> - Sistema de Gestão de Barbearia
               </p>
               <p className="text-sm text-muted-foreground">
                 Desenvolvido para facilitar a gestão do seu negócio.
