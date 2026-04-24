@@ -77,7 +77,7 @@ export default function ComissoesPage() {
           ...doc.data(),
           createdAt: doc.data().createdAt?.toDate() || new Date(),
         }))
-        .filter(a => a.status === "finalizado") as Atendimento[];
+        .filter((a: any) => a.status === "finalizado") as Atendimento[];
 
       const barbeirosAgrupados: Record<string, BarbeiroComissao> = {};
       
