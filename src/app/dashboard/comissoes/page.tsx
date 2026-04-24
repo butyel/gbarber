@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, getToday } from "@/lib/utils";
 import { TrendingUp, Calendar, Users } from "lucide-react";
 import type { Atendimento } from "@/types";
-
+import { StatCard } from "@/components/ui/stat-card";
 interface BarbeiroComissao {
   nome: string;
   atendimentos: number;
@@ -168,17 +168,12 @@ export default function ComissoesPage() {
             loading={loading}
           />
         </div>
-            <CardContent>
-              {loading ? <Skeleton className="h-8 w-24" /> : (
-                <div className="text-2xl font-bold">{formatCurrency(totalGeral.produtos)}</div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Comissões por Barbeiro</CardTitle>
+        <Card className="glass-card border-none overflow-hidden animate-slide-up" style={{ animationDelay: '200ms' }}>
+          <CardHeader className="border-b border-white/10 bg-white/40 backdrop-blur-md p-6">
+            <CardTitle className="text-xl font-black text-primary flex items-center gap-2">
+              <Users className="h-5 w-5 text-accent" />
+              Comissões por Barbeiro
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (

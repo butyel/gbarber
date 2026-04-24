@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, formatCurrency, formatDate, formatTime } from "@/lib/utils";
-import { Plus, Search, Trash2, Loader2, RotateCcw, Eye, Pencil, Check } from "lucide-react";
+import { Plus, Search, Trash2, Loader2, RotateCcw, Eye, Pencil, Check, List } from "lucide-react";
 import type { Atendimento, Barbeiro, Servico, Produto } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
