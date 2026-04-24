@@ -40,7 +40,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar isCollapsed={sidebarCollapsed} onToggle={toggleSidebar} />
-      <main className={sidebarCollapsed ? "md:pl-16" : "md:pl-64"}>
+      <main className={sidebarCollapsed ? "md:pl-20" : "md:pl-72"}>
         <div className="md:hidden h-14"></div>
         {children}
       </main>

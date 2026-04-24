@@ -41,9 +41,12 @@ export function Topbar({ action }: { action?: React.ReactNode }) {
   const planoAtual = "Free";
 
   return (
-    <header className="sticky top-0 z-20 h-14 md:h-16 bg-card px-3 md:px-6 flex items-center justify-between">
-      <div className="flex items-center gap-2 md:gap-4">
-        <h1 className="text-base md:text-xl font-semibold text-foreground truncate max-w-[150px] md:max-w-none">{displayTitle}</h1>
+    <header className="sticky top-0 z-30 h-16 md:h-20 glass-panel border-b border-white/20 px-4 md:px-8 lg:px-12 flex items-center justify-between transition-all duration-300">
+      <div className="flex items-center gap-4">
+        <div className="md:hidden w-10" /> {/* Space for menu button */}
+        <h1 className="text-lg md:text-2xl font-black tracking-tight text-primary truncate max-w-[200px] md:max-w-none">
+          {displayTitle}
+        </h1>
       </div>
 
       <div className="flex items-center gap-2 md:gap-3">

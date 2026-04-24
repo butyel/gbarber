@@ -65,7 +65,7 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-[#1A2E21] text-[#C9A84C] flex flex-col transition-all duration-500 ease-in-out border-r border-white/5",
+          "fixed left-0 top-0 z-40 h-screen bg-[#1A2E21] text-[#C9A84C] flex flex-col transition-all duration-500 ease-in-out border-r border-white/5 shadow-2xl",
           isCollapsed ? "w-20" : "w-72",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
@@ -73,17 +73,17 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
         {/* Subtle Background pattern */}
         <div className="absolute inset-0 opacity-10 pointer-events-none bg-grid-pattern" />
         
-        <div className="flex items-center justify-between p-6 border-b border-white/10 relative z-10">
+        <div className="flex items-center justify-between h-16 md:h-20 px-6 border-b border-white/10 relative z-10">
           {!isCollapsed && (
             <div className="animate-scale-in">
               <h1 className="text-2xl font-black tracking-tighter text-white flex items-center gap-2">
-                <span className="w-8 h-8 rounded-lg bg-accent text-primary flex items-center justify-center text-xl">G</span>
+                <span className="w-9 h-9 rounded-xl bg-accent text-primary flex items-center justify-center text-xl shadow-lg shadow-accent/20">G</span>
                 GBarber
               </h1>
-              <div className="flex items-center gap-1.5 mt-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-accent/80">
-                  {isAdmin ? "Administrator" : user?.nome || "Premium Studio"}
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                <p className="text-[10px] uppercase font-black tracking-[0.3em] text-accent/60">
+                  {isAdmin ? "Admin Panel" : user?.nome || "Premium"}
                 </p>
               </div>
             </div>

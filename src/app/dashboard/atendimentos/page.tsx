@@ -280,21 +280,21 @@ export default function AtendimentosPage() {
         }
       />
 
-      <div className="p-6 space-y-8 bg-mesh min-h-screen">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-slide-up">
+      <div className="p-4 md:p-8 lg:p-12 space-y-8 bg-mesh min-h-[calc(100vh-80px)]">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-slide-up">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-primary">Histórico de Atendimentos</h1>
-            <p className="text-muted-foreground font-medium mt-1">Gerencie e acompanhe todos os serviços realizados.</p>
+            <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-primary">Histórico</h1>
+            <p className="text-muted-foreground font-semibold mt-2 text-lg">Gerencie e acompanhe todos os serviços realizados.</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 glass-panel p-2 rounded-2xl shadow-xl border-white/40">
             {lastAtendimento && (
-              <Button variant="outline" onClick={handleRepeatLast} title="Repetir último serviço" className="rounded-xl border-accent/30 text-accent hover:bg-accent/10">
-                <RotateCcw className="h-4 w-4 mr-2" />
+              <Button variant="outline" onClick={handleRepeatLast} title="Repetir último serviço" className="rounded-xl border-accent/30 text-accent hover:bg-accent/10 h-12 px-6 font-bold">
+                <RotateCcw className="h-5 w-5 mr-2" />
                 Repetir Último
               </Button>
             )}
-            <Button onClick={() => setIsModalOpen(true)} className="rounded-xl shadow-lg shadow-primary/20">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button onClick={() => setIsModalOpen(true)} className="rounded-xl shadow-lg shadow-primary/20 h-12 px-6 font-bold text-base">
+              <Plus className="h-5 w-5 mr-2" />
               Novo Atendimento
             </Button>
           </div>
@@ -313,8 +313,11 @@ export default function AtendimentosPage() {
         </div>
 
         <Card className="glass-card border-none overflow-hidden animate-slide-up" style={{ animationDelay: '200ms' }}>
-          <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md">
-            <CardTitle>Listagem Geral</CardTitle>
+          <CardHeader className="border-b border-white/10 bg-white/40 backdrop-blur-md p-6">
+            <CardTitle className="text-xl font-black text-primary flex items-center gap-2">
+              <List className="h-5 w-5 text-accent" />
+              Listagem Geral
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Table>

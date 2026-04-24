@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatCard } from "@/components/ui/stat-card";
 import { FaturamentoChart, AtendimentosChart } from "@/components/charts";
 import { formatCurrency, formatTime } from "@/lib/utils";
-import { DollarSign, Users, Receipt, Plus, Wallet, Award, Cake } from "lucide-react";
+import { DollarSign, Users, Receipt, Plus, Wallet, Award, Cake, TrendingUp, Sparkles } from "lucide-react";
 import type { Atendimento } from "@/types";
 import { useRouter } from "next/navigation";
 import { format, addDays } from "date-fns";
@@ -180,102 +180,102 @@ export default function DashboardPage() {
         }
       />
 
-      <div className="p-4 md:p-8 space-y-8 bg-mesh min-h-screen">
+      <div className="p-4 md:p-8 lg:p-12 space-y-8 bg-mesh min-h-[calc(100vh-80px)]">
         {/* Welcome Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-slide-up">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-slide-up">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-primary flex items-center gap-3">
-              Olá, {user?.nome?.split(' ')[0] || 'Barbeiro'} <span className="animate-wave text-4xl">👋</span>
+            <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-primary flex items-center gap-4">
+              Olá, {user?.nome?.split(' ')[0] || 'Barbeiro'} <span className="animate-wave text-4xl md:text-6xl">👋</span>
             </h1>
-            <p className="text-muted-foreground font-medium mt-1">
-              {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })} — Que tal um café e alguns cortes hoje? ☕
+            <p className="text-muted-foreground font-semibold mt-2 text-lg">
+              {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })} — Vamos bater as metas hoje? 🚀
             </p>
           </div>
-          <div className="flex items-center gap-3 bg-white/50 backdrop-blur-md p-1.5 rounded-2xl border border-white shadow-sm">
-            <Button onClick={() => router.push("/dashboard/atendimentos")} className="rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
-              <Plus className="h-4 w-4 mr-2" />
+          <div className="flex items-center gap-3 glass-panel p-2 rounded-2xl shadow-xl border-white/40">
+            <Button onClick={() => router.push("/dashboard/atendimentos")} className="rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 h-12 px-6 font-bold text-base">
+              <Plus className="h-5 w-5 mr-2" />
               Novo Atendimento
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
             title="Faturamento Hoje"
             value={formatCurrency(stats.faturamentoDia)}
-            icon={<DollarSign className="h-4 w-4" />}
+            icon={<DollarSign className="h-5 w-5" />}
             trend={stats.crescimento}
             loading={loading}
           />
           <StatCard
             title="Lucro do Dia"
             value={formatCurrency(stats.lucroDia)}
-            icon={<DollarSign className="h-4 w-4 text-green-500" />}
+            icon={<DollarSign className="h-5 w-5 text-success" />}
             description="Receita - Comissões"
-            valueClassName="text-green-600"
+            valueClassName="text-success"
             loading={loading}
           />
           <StatCard
             title="Atendimentos"
             value={stats.atendimentosDia}
-            icon={<Users className="h-4 w-4" />}
+            icon={<Users className="h-5 w-5" />}
             description="Clientes hoje"
             loading={loading}
           />
           <StatCard
             title="Ticket Médio"
             value={formattedTicketMedio}
-            icon={<Receipt className="h-4 w-4" />}
-            description="Por atendimento"
+            icon={<Receipt className="h-5 w-5" />}
+            description="Média por corte"
             loading={loading}
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {topBarbeiro && (
-            <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
+            <Card className="glass-card border-none bg-gradient-to-br from-primary/5 to-transparent overflow-hidden group">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Award className="h-4 w-4 text-yellow-500" />
-                  Barbeiro do Dia
+                <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-muted-foreground">
+                  <Award className="h-4 w-4 text-accent" />
+                  Destaque do Dia
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-xl font-bold">{topBarbeiro.nome}</div>
-                <p className="text-sm text-muted-foreground">{formatCurrency(topBarbeiro.valor)} faturado</p>
+                <div className="text-2xl font-black text-primary group-hover:scale-105 transition-transform duration-500">{topBarbeiro.nome}</div>
+                <p className="text-sm font-bold text-accent mt-1">{formatCurrency(topBarbeiro.valor)} faturado</p>
               </CardContent>
             </Card>
           )}
 
           {topServico && (
-            <Card className="bg-gradient-to-br from-accent/10 to-accent/5">
+            <Card className="glass-card border-none bg-gradient-to-br from-accent/5 to-transparent overflow-hidden group">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Receipt className="h-4 w-4 text-accent" />
-                  Serviço Mais Vendido
+                <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-muted-foreground">
+                  <Sparkles className="h-4 w-4 text-accent" />
+                  Serviço em Alta
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-xl font-bold">{topServico.nome}</div>
-                <p className="text-sm text-muted-foreground">{topServico.quantidade} atendimentos</p>
+                <div className="text-2xl font-black text-primary group-hover:scale-105 transition-transform duration-500">{topServico.nome}</div>
+                <p className="text-sm font-bold text-accent mt-1">{topServico.quantidade} atendimentos</p>
               </CardContent>
             </Card>
           )}
 
           {aniversariantesSemana.length > 0 && (
-            <Card className="bg-[#7A3B2E]/10 border-[#7A3B2E]/20">
+            <Card className="glass-card border-none bg-gradient-to-br from-destructive/5 to-transparent overflow-hidden group">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2 text-[#7A3B2E]">
-                  <Cake className="h-4 w-4" />
-                  Aniversariantes da Semana
+                <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-muted-foreground">
+                  <Cake className="h-4 w-4 text-destructive" />
+                  Aniversariantes
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {aniversariantesSemana.map((niver, idx) => (
-                    <div key={idx} className="flex justify-between items-center bg-white/50 p-2 rounded text-sm">
-                      <span className="font-medium text-[#7A3B2E] font-bold">{niver.nome}</span>
-                      <span className="text-[#7A3B2E]/80 font-bold">{niver.data}</span>
+                <div className="space-y-3">
+                  {aniversariantesSemana.slice(0, 2).map((niver, idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-white/40 backdrop-blur-sm p-3 rounded-xl border border-white/20">
+                      <span className="font-bold text-primary">{niver.nome}</span>
+                      <span className="px-2 py-1 rounded-lg bg-destructive/10 text-destructive text-[10px] font-black">{niver.data}</span>
                     </div>
                   ))}
                 </div>
@@ -284,7 +284,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
           <Card className="glass-card border-none overflow-hidden group">
             <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md">
               <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">

@@ -147,37 +147,27 @@ export default function ComissoesPage() {
         }
       />
 
-      <div className="p-6 space-y-6">
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total em Comissões</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {loading ? <Skeleton className="h-8 w-24" /> : (
-                <div className="text-2xl font-bold">{formatCurrency(totalGeral.comissao)}</div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Valor em Serviços</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {loading ? <Skeleton className="h-8 w-24" /> : (
-                <div className="text-2xl font-bold">{formatCurrency(totalGeral.servicos)}</div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Valor em Produtos</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
+      <div className="p-4 md:p-8 lg:p-12 space-y-8 bg-mesh min-h-[calc(100vh-80px)]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatCard
+            title="Total em Comissões"
+            value={formatCurrency(totalGeral.comissao)}
+            icon={<TrendingUp className="h-5 w-5" />}
+            loading={loading}
+          />
+          <StatCard
+            title="Valor em Serviços"
+            value={formatCurrency(totalGeral.servicos)}
+            icon={<Users className="h-5 w-5" />}
+            loading={loading}
+          />
+          <StatCard
+            title="Valor em Produtos"
+            value={formatCurrency(totalGeral.produtos)}
+            icon={<TrendingUp className="h-5 w-5" />}
+            loading={loading}
+          />
+        </div>
             <CardContent>
               {loading ? <Skeleton className="h-8 w-24" /> : (
                 <div className="text-2xl font-bold">{formatCurrency(totalGeral.produtos)}</div>
