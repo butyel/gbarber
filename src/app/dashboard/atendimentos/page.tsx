@@ -226,6 +226,8 @@ export default function AtendimentosPage() {
       valor: appointment.valor,
       produtoId: appointment.produtoVendido?.produtoId || "",
       produtoQuantidade: appointment.produtoVendido?.quantidade || 1,
+      data: appointment.data || (appointment.createdAt ? new Date(appointment.createdAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]),
+      hora: appointment.hora || (appointment.createdAt ? new Date(appointment.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })),
     });
     setIsModalOpen(true);
   };
@@ -536,7 +538,16 @@ export default function AtendimentosPage() {
               setIsModalOpen(false);
               setSelectedAtendimento(null);
               setIsEditMode(false);
-              setFormData({ cliente: "", barbeiroId: "", servicoId: "", valor: 0, produtoId: "", produtoQuantidade: 1 });
+              setFormData({ 
+                cliente: "", 
+                barbeiroId: "", 
+                servicoId: "", 
+                valor: 0, 
+                produtoId: "", 
+                produtoQuantidade: 1,
+                data: new Date().toISOString().split("T")[0],
+                hora: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+              });
             }}>Fechar</Button>
             {isEditMode && (
               <Button onClick={handleSubmit} disabled={submitting}>
