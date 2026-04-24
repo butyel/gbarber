@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatCurrency, formatDate, formatTime } from "@/lib/utils";
+import { cn, formatCurrency, formatDate, formatTime } from "@/lib/utils";
 import { Plus, Search, Trash2, Loader2, RotateCcw, Eye, Pencil, Check } from "lucide-react";
 import type { Atendimento, Barbeiro, Servico, Produto } from "@/types";
 import { useToast } from "@/hooks/use-toast";
