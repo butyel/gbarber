@@ -136,6 +136,11 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
             <LogOut className="h-5 w-5" />
             {!isCollapsed && <span className="ml-3 font-bold tracking-tight">Sair da Conta</span>}
           </Button>
+          {!isCollapsed && (
+            <p className="text-[10px] text-white/20 text-center mt-4 font-bold tracking-widest uppercase">
+              GBarber v2.3
+            </p>
+          )}
         </div>
 
         {/* Floating Toggle Button */}

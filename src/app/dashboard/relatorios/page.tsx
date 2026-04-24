@@ -144,6 +144,9 @@ export default function RelatoriosPage() {
               <SelectItem value="7">Últimos 7 dias</SelectItem>
               <SelectItem value="15">Últimos 15 dias</SelectItem>
               <SelectItem value="30">Últimos 30 dias</SelectItem>
+              <SelectItem value="60">Últimos 2 meses</SelectItem>
+              <SelectItem value="90">Últimos 3 meses</SelectItem>
+              <SelectItem value="180">Últimos 6 meses</SelectItem>
             </SelectContent>
           </Select>
         }

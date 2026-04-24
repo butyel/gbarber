@@ -23,6 +23,8 @@ export default function ClientesPage() {
   const [loading, setLoading] = useState(true);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filtroPlano, setFiltroPlano] = useState("todos");
+  const [filtroAniversario, setFiltroAniversario] = useState("todos");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -162,11 +164,28 @@ export default function ClientesPage() {
     toast({ title: "Planilha gerada com sucesso!" });
   };
 
-  const filteredClientes = clientes.filter(c => 
-    c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.telefone?.includes(searchTerm) ||
-    c.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredClientes = clientes.filter(c => {
+    const matchSearch = c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.telefone?.includes(searchTerm) ||
+      c.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchPlano = filtroPlano === "todos" || c.planoId === filtroPlano;
+    
+    let matchAniversario = true;
+    if (filtroAniversario === "mes_atual") {
+      const currentMonth = new Date().getMonth() + 1;
+      if (!c.dataNascimento) {
+        matchAniversario = false;
+      } else {
+        const [, month] = c.dataNascimento.split("-");
+        if (parseInt(month) !== currentMonth) {
+          matchAniversario = false;
+        }
+      }
+    }
+
+    return matchSearch && matchPlano && matchAniversario;
+  });
 
   return (
     <div className="min-h-screen">
@@ -186,7 +205,7 @@ export default function ClientesPage() {
       />
 
       <div className="p-6 space-y-6">
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
@@ -196,6 +215,29 @@ export default function ClientesPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <Select value={filtroPlano} onValueChange={setFiltroPlano}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <CreditCard className="h-4 w-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Plano" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os Planos</SelectItem>
+              <SelectItem value="none">Sem Plano</SelectItem>
+              {planos.map(p => (
+                <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filtroAniversario} onValueChange={setFiltroAniversario}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <Cake className="h-4 w-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Aniversário" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Qualquer Data</SelectItem>
+              <SelectItem value="mes_atual">Aniversariantes do Mês</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <Card>

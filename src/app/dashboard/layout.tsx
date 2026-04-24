@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Suspense, useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -40,7 +41,10 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar isCollapsed={sidebarCollapsed} onToggle={toggleSidebar} />
-      <main className={sidebarCollapsed ? "md:pl-20" : "md:pl-72"}>
+      <main className={cn(
+        "transition-all duration-500 ease-in-out min-h-screen",
+        sidebarCollapsed ? "md:pl-20" : "md:pl-72"
+      )}>
         <div className="md:hidden h-14"></div>
         {children}
       </main>

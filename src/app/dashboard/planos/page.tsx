@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { collection, query, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
@@ -25,6 +25,7 @@ export default function PlanosPage() {
   const [planos, setPlanos] = useState<PlanoCliente[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [expandedPlanoId, setExpandedPlanoId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -121,6 +122,14 @@ export default function PlanosPage() {
 
   const getClientesNoPlano = (planoId: string) => {
     return clientes.filter(c => c.planoId === planoId).length;
+  };
+
+  const getClientesListaPorPlano = (planoId: string) => {
+    return clientes.filter(c => c.planoId === planoId);
+  };
+
+  const toggleExpand = (planoId: string) => {
+    setExpandedPlanoId(prev => prev === planoId ? null : planoId);
   };
 
   const totalAssinantes = clientes.filter(c => c.planoId && c.planoId !== "none").length;
@@ -233,51 +242,79 @@ export default function PlanosPage() {
                   </TableRow>
                 ) : (
                   filteredPlanos.map((plano) => (
-                    <TableRow key={plano.id} className="hover:bg-muted/10 transition-colors group">
-                      <TableCell className="font-semibold pl-6 text-foreground">{plano.nome}</TableCell>
-                      <TableCell>
-                        <span className={cn(
-                          "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                          plano.tipo === 'mensal' ? "bg-blue-100 text-blue-700" :
-                          plano.tipo === 'semestral' ? "bg-purple-100 text-purple-700" :
-                          "bg-orange-100 text-orange-700"
-                        )}>
-                          {plano.tipo}
-                        </span>
-                      </TableCell>
-                      <TableCell className="font-mono font-bold text-accent">
-                        R$ {plano.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1.5">
-                          <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="font-medium">{getClientesNoPlano(plano.id)}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm max-w-xs truncate hidden md:table-cell">
-                        {plano.descricao || "Sem descrição"}
-                      </TableCell>
-                      <TableCell className="text-right pr-6">
-                        <div className="flex justify-end gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleEdit(plano)}
-                            className="hover:bg-accent/10 hover:text-accent transition-colors"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleDelete(plano.id)}
-                            className="hover:bg-destructive/10 hover:text-destructive transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                    <React.Fragment key={plano.id}>
+                      <TableRow 
+                        className="hover:bg-muted/10 transition-colors group cursor-pointer"
+                        onClick={() => toggleExpand(plano.id)}
+                      >
+                        <TableCell className="font-semibold pl-6 text-foreground">{plano.nome}</TableCell>
+                        <TableCell>
+                          <span className={cn(
+                            "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                            plano.tipo === 'mensal' ? "bg-blue-100 text-blue-700" :
+                            plano.tipo === 'semestral' ? "bg-purple-100 text-purple-700" :
+                            "bg-orange-100 text-orange-700"
+                          )}>
+                            {plano.tipo}
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-mono font-bold text-accent">
+                          R$ {plano.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5">
+                            <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="font-medium">{getClientesNoPlano(plano.id)}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm max-w-xs truncate hidden md:table-cell">
+                          {plano.descricao || "Sem descrição"}
+                        </TableCell>
+                        <TableCell className="text-right pr-6">
+                          <div className="flex justify-end gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={(e) => { e.stopPropagation(); handleEdit(plano); }}
+                              className="hover:bg-accent/10 hover:text-accent transition-colors"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={(e) => { e.stopPropagation(); handleDelete(plano.id); }}
+                              className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {expandedPlanoId === plano.id && (
+                        <TableRow className="bg-muted/5 hover:bg-muted/5 border-t-0">
+                          <TableCell colSpan={6} className="p-0">
+                            <div className="px-6 py-4 border-l-4 border-accent bg-background">
+                              <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                                <Users className="h-4 w-4 text-accent" /> Clientes neste plano:
+                              </h4>
+                              {getClientesListaPorPlano(plano.id).length > 0 ? (
+                                <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                  {getClientesListaPorPlano(plano.id).map(cliente => (
+                                    <li key={cliente.id} className="text-sm bg-muted/20 rounded-md p-2 flex justify-between items-center">
+                                      <span className="font-medium">{cliente.nome}</span>
+                                      <span className="text-muted-foreground text-xs">{cliente.telefone || "Sem telefone"}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-sm text-muted-foreground italic">Nenhum cliente assina este plano no momento.</p>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
                   ))
                 )}
               </TableBody>
