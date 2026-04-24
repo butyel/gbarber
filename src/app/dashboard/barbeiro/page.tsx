@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Scissors, User, Calendar, Clock, DollarSign, Check, X, Loader2, LogOut } from "lucide-react";
-import { formatCurrency, getToday } from "@/lib/utils";
+import { cn, formatCurrency, getToday } from "@/lib/utils";
 import type { Atendimento } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
