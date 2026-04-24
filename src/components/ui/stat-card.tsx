@@ -29,17 +29,6 @@ export const StatCard = memo(function StatCard({
   className,
   valueClassName,
 }: StatCardProps) {
-export const StatCard = memo(function StatCard({
-  title,
-  value,
-  icon,
-  description,
-  trend,
-  trendLabel = "vs ontem",
-  loading = false,
-  className,
-  valueClassName,
-}: StatCardProps) {
   if (loading) {
     return (
       <Card className={cn("glass-card border-none", className)}>
