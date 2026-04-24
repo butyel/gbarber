@@ -45,7 +45,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         "transition-all duration-500 ease-in-out min-h-screen",
         sidebarCollapsed ? "md:pl-20" : "md:pl-72"
       )}>
-        <div className="md:hidden h-14"></div>
+        <div className="md:hidden h-16"></div>
         {children}
       </main>
     </div>
