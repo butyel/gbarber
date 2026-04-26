@@ -33,7 +33,7 @@ export default function PlanosPage() {
   const [formData, setFormData] = useState({
     nome: "",
     preco: 0,
-    tipo: "mensal" as "mensal" | "semestral" | "anual",
+    tipo: "mensal" as "mensal" | "bimestral" | "trimestral" | "semestral" | "anual",
     descricao: "",
   });
 
@@ -252,6 +252,8 @@ export default function PlanosPage() {
                           <span className={cn(
                             "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
                             plano.tipo === 'mensal' ? "bg-blue-100 text-blue-700" :
+                            plano.tipo === 'bimestral' ? "bg-cyan-100 text-cyan-700" :
+                            plano.tipo === 'trimestral' ? "bg-green-100 text-green-700" :
                             plano.tipo === 'semestral' ? "bg-purple-100 text-purple-700" :
                             "bg-orange-100 text-orange-700"
                           )}>
@@ -357,6 +359,8 @@ export default function PlanosPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="mensal">Mensal</SelectItem>
+                    <SelectItem value="bimestral">Bimestral</SelectItem>
+                    <SelectItem value="trimestral">Trimestral</SelectItem>
                     <SelectItem value="semestral">Semestral</SelectItem>
                     <SelectItem value="anual">Anual</SelectItem>
                   </SelectContent>
