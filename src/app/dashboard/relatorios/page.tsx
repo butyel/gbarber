@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
+import { collection, query, where, orderBy, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
@@ -58,24 +58,29 @@ export default function RelatoriosPage() {
     if (!user) return;
     setLoading(true);
     try {
-      let startDate = new Date();
-      let endDate = new Date();
+      let startTimestamp: Timestamp;
+      let endTimestamp: Timestamp;
+      
+      const now = new Date();
       
       if (periodo === "custom") {
-        startDate = new Date(dataInicio + "T00:00:00");
-        endDate = new Date(dataFim + "T23:59:59");
+        const startDate = new Date(dataInicio + "T00:00:00");
+        const endDate = new Date(dataFim + "T23:59:59");
+        startTimestamp = Timestamp.fromDate(startDate);
+        endTimestamp = Timestamp.fromDate(endDate);
       } else {
         const dias = parseInt(periodo);
-        startDate.setDate(startDate.getDate() - dias);
+        startTimestamp = Timestamp.fromDate(new Date(now.getTime() - dias * 24 * 60 * 60 * 1000));
+        endTimestamp = Timestamp.fromDate(now);
       }
 
       const constraints = [
-        where("createdAt", ">=", startDate),
+        where("createdAt", ">=", startTimestamp),
         orderBy("createdAt", "desc")
       ];
       
       if (periodo === "custom") {
-        constraints.push(where("createdAt", "<=", endDate));
+        constraints.push(where("createdAt", "<=", endTimestamp));
       }
 
       const appointmentsSnap = await getDocs(query(
@@ -88,17 +93,39 @@ export default function RelatoriosPage() {
         orderBy("nome")
       ));
 
-      const appointments = appointmentsSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-      })) as Atendimento[];
+      const appointments = appointmentsSnap.docs.map(doc => {
+        const data = doc.data();
+        let createdAtDate: Date;
+        if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+          createdAtDate = data.createdAt.toDate();
+        } else if (data.createdAt instanceof Date) {
+          createdAtDate = data.createdAt;
+        } else {
+          createdAtDate = new Date(data.createdAt);
+        }
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: createdAtDate,
+        };
+      }) as Atendimento[];
 
-      const servicos = servicosSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-      })) as Servico[];
+      const servicos = servicosSnap.docs.map(doc => {
+        const data = doc.data();
+        let createdAtDate: Date;
+        if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+          createdAtDate = data.createdAt.toDate();
+        } else if (data.createdAt instanceof Date) {
+          createdAtDate = data.createdAt;
+        } else {
+          createdAtDate = new Date(data.createdAt);
+        }
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: createdAtDate,
+        };
+      }) as Servico[];
 
       const diasAgrupados: Record<string, { faturamento: number; atendimentos: number }> = {};
       
