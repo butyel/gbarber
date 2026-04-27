@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, orderBy, getDocs, Timestamp } from "firebase/firestore";
+import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
@@ -58,34 +58,23 @@ export default function RelatoriosPage() {
     if (!user) return;
     setLoading(true);
     try {
-      let startTimestamp: Timestamp;
-      let endTimestamp: Timestamp;
+      let startDate: Date;
+      let endDate: Date;
       
       const now = new Date();
       
       if (periodo === "custom") {
-        const startDate = new Date(dataInicio + "T00:00:00");
-        const endDate = new Date(dataFim + "T23:59:59");
-        startTimestamp = Timestamp.fromDate(startDate);
-        endTimestamp = Timestamp.fromDate(endDate);
+        startDate = new Date(dataInicio + "T00:00:00");
+        endDate = new Date(dataFim + "T23:59:59");
       } else {
         const dias = parseInt(periodo);
-        startTimestamp = Timestamp.fromDate(new Date(now.getTime() - dias * 24 * 60 * 60 * 1000));
-        endTimestamp = Timestamp.fromDate(now);
-      }
-
-      const constraints = [
-        where("createdAt", ">=", startTimestamp),
-        orderBy("createdAt", "desc")
-      ];
-      
-      if (periodo === "custom") {
-        constraints.push(where("createdAt", "<=", endTimestamp));
+        startDate = new Date(now.getTime() - dias * 24 * 60 * 60 * 1000);
+        endDate = now;
       }
 
       const appointmentsSnap = await getDocs(query(
         collection(db, `barbearias/${user.id}/atendimentos`),
-        ...constraints
+        orderBy("createdAt", "desc")
       ));
 
       const servicosSnap = await getDocs(query(
@@ -100,8 +89,10 @@ export default function RelatoriosPage() {
           createdAtDate = data.createdAt.toDate();
         } else if (data.createdAt instanceof Date) {
           createdAtDate = data.createdAt;
-        } else {
+        } else if (data.createdAt) {
           createdAtDate = new Date(data.createdAt);
+        } else {
+          createdAtDate = new Date();
         }
         return {
           id: doc.id,
@@ -117,8 +108,10 @@ export default function RelatoriosPage() {
           createdAtDate = data.createdAt.toDate();
         } else if (data.createdAt instanceof Date) {
           createdAtDate = data.createdAt;
-        } else {
+        } else if (data.createdAt) {
           createdAtDate = new Date(data.createdAt);
+        } else {
+          createdAtDate = new Date();
         }
         return {
           id: doc.id,
@@ -127,9 +120,14 @@ export default function RelatoriosPage() {
         };
       }) as Servico[];
 
+      const filteredAppointments = appointments.filter(a => {
+        const date = a.createdAt.getTime();
+        return date >= startDate.getTime() && date <= endDate.getTime();
+      });
+      
       const diasAgrupados: Record<string, { faturamento: number; atendimentos: number }> = {};
       
-      appointments.forEach(a => {
+      filteredAppointments.forEach(a => {
         const dataKey = a.createdAt.toISOString().split("T")[0];
         if (!diasAgrupados[dataKey]) {
           diasAgrupados[dataKey] = { faturamento: 0, atendimentos: 0 };
@@ -147,7 +145,7 @@ export default function RelatoriosPage() {
         }));
 
       const servicosContagem: Record<string, { count: number; valor: number }> = {};
-      appointments.forEach(a => {
+      filteredAppointments.forEach(a => {
         if (!servicosContagem[a.servicoNome]) {
           servicosContagem[a.servicoNome] = { count: 0, valor: 0 };
         }
@@ -161,7 +159,7 @@ export default function RelatoriosPage() {
         .slice(0, 5);
 
       const barbeirosContagem: Record<string, { atendimentos: number; comissao: number; valor: number }> = {};
-      appointments.forEach(a => {
+      filteredAppointments.forEach(a => {
         if (!barbeirosContagem[a.barbeiroNome]) {
           barbeirosContagem[a.barbeiroNome] = { atendimentos: 0, comissao: 0, valor: 0 };
         }
@@ -174,16 +172,15 @@ export default function RelatoriosPage() {
         .map(([nome, valores]) => ({ nome, ...valores }))
         .sort((a, b) => b.valor - a.valor);
 
-      const totalFaturamento = appointments.reduce((sum, a) => sum + a.valor + (a.produtoVendido?.valor || 0), 0);
-      const totalComissoes = appointments.reduce((sum, a) => sum + a.comissao, 0);
+      const totalFaturamento = filteredAppointments.reduce((sum, a) => sum + a.valor + (a.produtoVendido?.valor || 0), 0);
 
       setData({
         dias: diasArray,
         servicosMaisVendidos,
         barbeirosPerformance,
         totalFaturamento,
-        totalAtendimentos: appointments.length,
-        ticketMedio: appointments.length > 0 ? totalFaturamento / appointments.length : 0,
+        totalAtendimentos: filteredAppointments.length,
+        ticketMedio: filteredAppointments.length > 0 ? totalFaturamento / filteredAppointments.length : 0,
       });
     } catch (error) {
       console.error("Error fetching reports:", error);
