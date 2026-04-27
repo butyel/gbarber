@@ -13,10 +13,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Pencil, Trash2, Loader2, Package, ArrowDown, ArrowUp } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Package, ArrowDown, ArrowUp, FileText } from "lucide-react";
 import type { Produto } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
+import { printPDF, type StockData } from "@/lib/pdf-report";
 
 export default function ProdutosPage() {
   const { user } = useAuth();
@@ -42,6 +43,29 @@ export default function ProdutosPage() {
   });
 
   const categorias = ["Cosméticos", "Ferramentas", "Acessórios", "Higiene", "Outros"];
+
+  const handleExportPDF = () => {
+    if (produtos.length === 0) {
+      alert("Sem produtos para exportar");
+      return;
+    }
+
+    const stockData: StockData = {
+      title: "Relatório de Estoque",
+      subtitle: `${produtos.length} produtos cadastrados`,
+      barberShopName: (user as any)?.nomeBarbearia || "GBarber",
+      items: produtos.map(p => ({
+        nome: p.nome,
+        categoria: p.categoria,
+        quantidade: p.quantidade,
+        custo: p.custo,
+        precoVenda: p.precoVenda,
+        estoqueMinimo: p.estoqueMinimo,
+      })),
+    };
+
+    printPDF(stockData, "stock");
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -184,10 +208,20 @@ export default function ProdutosPage() {
     <div className="min-h-screen">
       <Topbar 
         action={
-          <Button onClick={() => { setFormData({ nome: "", categoria: "", custo: 0, precoVenda: 0, quantidade: 0, estoqueMinimo: 5 }); setEditingId(null); setIsModalOpen(true); }}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Produto
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={handleExportPDF} 
+              variant="outline"
+              className="border-accent/50 text-accent hover:bg-accent/10"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Exportar PDF
+            </Button>
+            <Button onClick={() => { setFormData({ nome: "", categoria: "", custo: 0, precoVenda: 0, quantidade: 0, estoqueMinimo: 5 }); setEditingId(null); setIsModalOpen(true); }}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Produto
+            </Button>
+          </div>
         }
       />
 

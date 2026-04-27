@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { BarChart3, TrendingUp, Calendar, Search } from "lucide-react";
+import { BarChart3, TrendingUp, Calendar, Search, Download, FileText } from "lucide-react";
 import type { Atendimento, Servico } from "@/types";
+import { printPDF, type ReportData } from "@/lib/pdf-report";
 
 interface RelatorioData {
   dias: { data: string; faturamento: number; atendimentos: number }[];
@@ -29,6 +30,7 @@ export default function RelatoriosPage() {
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [data, setData] = useState<RelatorioData | null>(null);
+  const [appointments, setAppointments] = useState<Atendimento[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -125,6 +127,8 @@ export default function RelatoriosPage() {
         return date >= startDate.getTime() && date <= endDate.getTime();
       });
       
+      setAppointments(filteredAppointments);
+      
       const diasAgrupados: Record<string, { faturamento: number; atendimentos: number }> = {};
       
       filteredAppointments.forEach(a => {
@@ -174,6 +178,7 @@ export default function RelatoriosPage() {
 
       const totalFaturamento = filteredAppointments.reduce((sum, a) => sum + a.valor + (a.produtoVendido?.valor || 0), 0);
 
+      setAppointments(appointments);
       setData({
         dias: diasArray,
         servicosMaisVendidos,
@@ -191,25 +196,84 @@ export default function RelatoriosPage() {
 
   const maxFaturamento = data ? Math.max(...data.dias.map(d => d.faturamento), 1) : 1;
 
+  const filteredAppointments = appointments;
+
+  const handleExportPDF = () => {
+    if (!data || !filteredAppointments || filteredAppointments.length === 0) {
+      alert("Sem dados para exportar");
+      return;
+    }
+
+    const getPeriodDates = () => {
+      if (periodo === "custom") {
+        return {
+          start: new Date(dataInicio + "T00:00:00"),
+          end: new Date(dataFim + "T23:59:59"),
+        };
+      }
+      const dias = parseInt(periodo);
+      return {
+        start: new Date(Date.now() - dias * 24 * 60 * 60 * 1000),
+        end: new Date(),
+      };
+    };
+
+    const periodDates = getPeriodDates();
+    const totalComissoes = (filteredAppointments || []).reduce((sum, a) => sum + a.comissao, 0);
+
+    const reportData: ReportData = {
+      title: "Relatório de Atendimentos",
+      subtitle: `${data?.totalAtendimentos || 0} atendimentos no período`,
+      barberShopName: (user as any)?.nomeBarbearia || "GBarber",
+      dateRange: periodDates,
+      summary: {
+        totalRevenue: data?.totalFaturamento || 0,
+        totalServices: data?.totalAtendimentos || 0,
+        totalCommission: totalComissoes,
+        totalProfit: (data?.totalFaturamento || 0) - totalComissoes,
+      },
+      items: (filteredAppointments || []).map(a => ({
+        date: a.createdAt.toLocaleDateString("pt-BR"),
+        client: a.cliente || "não informado",
+        service: a.servicoNome || "não informado",
+        barber: a.barbeiroNome || "não informado",
+        value: a.valor,
+        commission: a.comissao,
+      })),
+    };
+
+    printPDF(reportData, "report");
+  };
+
   return (
     <div className="min-h-screen">
       <Topbar 
         action={
-          <Select value={periodo} onValueChange={setPeriodo}>
-            <SelectTrigger className="w-40">
-              <Calendar className="h-4 w-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">Últimos 7 dias</SelectItem>
-              <SelectItem value="15">Últimos 15 dias</SelectItem>
-              <SelectItem value="30">Últimos 30 dias</SelectItem>
-              <SelectItem value="60">Últimos 2 meses</SelectItem>
-              <SelectItem value="90">Últimos 3 meses</SelectItem>
-              <SelectItem value="180">Últimos 6 meses</SelectItem>
-              <SelectItem value="custom">Personalizado</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={handleExportPDF} 
+              variant="outline"
+              className="border-accent/50 text-accent hover:bg-accent/10"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Exportar PDF
+            </Button>
+            <Select value={periodo} onValueChange={setPeriodo}>
+              <SelectTrigger className="w-40">
+                <Calendar className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Últimos 7 dias</SelectItem>
+                <SelectItem value="15">Últimos 15 dias</SelectItem>
+                <SelectItem value="30">Últimos 30 dias</SelectItem>
+                <SelectItem value="60">Últimos 2 meses</SelectItem>
+                <SelectItem value="90">Últimos 3 meses</SelectItem>
+                <SelectItem value="180">Últimos 6 meses</SelectItem>
+                <SelectItem value="custom">Personalizado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         }
       />
 
