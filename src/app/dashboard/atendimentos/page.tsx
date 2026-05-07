@@ -290,7 +290,7 @@ export default function AtendimentosPage() {
             <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-primary">Histórico</h1>
             <p className="text-muted-foreground font-semibold mt-2 text-lg">Gerencie e acompanhe todos os serviços realizados.</p>
           </div>
-          <div className="flex items-center gap-3 glass-panel p-2 rounded-2xl shadow-xl border-white/40">
+          <div className="flex items-center gap-3 bg-muted/40 p-2 rounded-2xl shadow-xl border-white/40">
             {lastAtendimento && (
               <Button variant="outline" onClick={handleRepeatLast} title="Repetir último serviço" className="rounded-xl border-accent/30 text-accent hover:bg-accent/10 h-12 px-6 font-bold">
                 <RotateCcw className="h-5 w-5 mr-2" />
@@ -309,14 +309,14 @@ export default function AtendimentosPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
             <Input 
               placeholder="Buscar por cliente, barbeiro..." 
-              className="pl-10 rounded-xl border-none glass-card focus-visible:ring-primary shadow-sm"
+              className="pl-10 rounded-xl border-none bg-background focus-visible:ring-primary shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
 
-        <Card className="glass-card border-none overflow-hidden animate-slide-up" style={{ animationDelay: '200ms' }}>
+        <Card className="bg-card shadow-sm border border-border/40 animate-slide-up" style={{ animationDelay: '200ms' }}>
           <CardHeader className="border-b border-white/10 bg-white/40 backdrop-blur-md p-6">
             <CardTitle className="text-xl font-black text-primary flex items-center gap-2">
               <List className="h-5 w-5 text-accent" />
@@ -392,17 +392,17 @@ export default function AtendimentosPage() {
                       <TableCell className="text-right px-6">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           {appointment.status !== "finalizado" && (
-                            <Button variant="ghost" size="icon" onClick={() => handleFinalize(appointment.id)} className="h-8 w-8 rounded-lg text-success hover:bg-success/10">
+                            <Button variant="ghost" size="icon" onClick={() => handleFinalize(appointment.id)} className="min-w-[44px] min-h-[44px] h-8 w-8 rounded-lg text-success hover:bg-success/10">
                               <Check className="h-4 w-4" />
                             </Button>
                           )}
-                          <Button variant="ghost" size="icon" onClick={() => handleViewDetails(appointment)} className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-muted">
+                          <Button variant="ghost" size="icon" onClick={() => handleViewDetails(appointment)} className="min-w-[44px] min-h-[44px] h-8 w-8 rounded-lg text-muted-foreground hover:bg-muted">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(appointment)} className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-muted">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(appointment)} className="min-w-[44px] min-h-[44px] h-8 w-8 rounded-lg text-muted-foreground hover:bg-muted">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(appointment.id)} className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10">
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(appointment.id)} className="min-w-[44px] min-h-[44px] h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>

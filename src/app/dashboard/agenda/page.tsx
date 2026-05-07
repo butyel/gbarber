@@ -258,14 +258,14 @@ export default function AgendaPage() {
 
       <div className="flex-1 flex flex-col p-4 md:p-8 space-y-6 overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-slide-up">
-          <div className="flex items-center gap-2 glass-panel p-1.5 rounded-2xl border-white shadow-sm">
-            <Button variant="ghost" size="icon" onClick={prevWeek} className="rounded-xl hover:bg-primary/5">
+          <div className="flex items-center gap-2 bg-muted/40 p-1.5 rounded-2xl border-white shadow-sm">
+            <Button variant="ghost" size="icon" onClick={prevWeek} className="min-w-[44px] min-h-[44px] rounded-xl hover:bg-primary/5">
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <h2 className="text-xl font-black tracking-tight capitalize min-w-[220px] text-center text-primary">
               {getMonthName()}
             </h2>
-            <Button variant="ghost" size="icon" onClick={nextWeek} className="rounded-xl hover:bg-primary/5">
+            <Button variant="ghost" size="icon" onClick={nextWeek} className="min-w-[44px] min-h-[44px] rounded-xl hover:bg-primary/5">
               <ChevronRight className="h-5 w-5" />
             </Button>
             <div className="w-px h-6 bg-border mx-2" />
@@ -273,7 +273,7 @@ export default function AgendaPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="flex glass-panel p-1 rounded-xl border-white shadow-sm">
+            <div className="flex bg-muted/30 p-1 rounded-xl border-white shadow-sm">
               <Button 
                 variant={viewMode === "day" ? "secondary" : "ghost"} 
                 size="sm" 
@@ -299,7 +299,7 @@ export default function AgendaPage() {
             </div>
 
             <Select value={selectedBarbeiro} onValueChange={setSelectedBarbeiro}>
-              <SelectTrigger className="w-[200px] glass-card border-none rounded-xl font-bold text-primary">
+              <SelectTrigger className="w-[200px] bg-background shadow-sm border border-border/40 rounded-xl font-bold text-primary">
                 <SelectValue placeholder="Barbeiro" />
               </SelectTrigger>
               <SelectContent className="rounded-xl border-white shadow-2xl">
@@ -310,7 +310,7 @@ export default function AgendaPage() {
           </div>
         </div>
 
-        <Card className="flex-1 flex flex-col overflow-hidden glass-card border-none animate-slide-up" style={{ animationDelay: '100ms' }}>
+        <Card className="flex-1 flex flex-col overflow-hidden bg-card shadow-sm border border-border/40 animate-slide-up" style={{ animationDelay: '100ms' }}>
           <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
             <div className={`grid border-b border-white/10 bg-white/50 backdrop-blur-md z-20 sticky top-0 ${viewMode === "week" ? "grid-cols-[80px_repeat(7,1fr)]" : "grid-cols-[100px_1fr]"}`}>
               <div className="p-4 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground border-r border-white/10 flex items-center justify-center">
@@ -427,7 +427,7 @@ export default function AgendaPage() {
           </CardContent>
         </Card>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 glass-panel p-4 rounded-2xl border-white shadow-sm text-sm animate-slide-up" style={{ animationDelay: '200ms' }}>
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-muted/40 p-4 rounded-2xl border-white shadow-sm text-sm animate-slide-up" style={{ animationDelay: '200ms' }}>
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full bg-blue-600 shadow-lg shadow-blue-600/30"></div>

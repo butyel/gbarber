@@ -190,7 +190,7 @@ function AgendarContent() {
   if (!barbeariaId) {
     return (
       <div className="min-h-screen bg-mesh flex items-center justify-center p-4">
-        <Card className="w-full max-w-md glass-card border-none shadow-2xl">
+        <Card className="w-full max-w-md bg-card/50 border border-border/40 shadow-sm">
           <CardContent className="pt-6 text-center">
             <div className="w-16 h-16 rounded-2xl bg-yellow-100 flex items-center justify-center mx-auto mb-4">
               <AlertCircle className="h-8 w-8 text-yellow-600" />
@@ -206,7 +206,7 @@ function AgendarContent() {
   if (sucesso) {
     return (
       <div className="min-h-screen bg-mesh flex items-center justify-center p-4">
-        <Card className="w-full max-w-md glass-card border-none shadow-2xl">
+        <Card className="w-full max-w-md bg-card/50 border border-border/40 shadow-sm">
           <CardContent className="pt-8 pb-8 text-center">
             <div className="w-16 h-16 rounded-2xl bg-green-100 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-200">
               <Check className="h-8 w-8 text-green-600" />
@@ -256,7 +256,7 @@ function AgendarContent() {
               </div>
             )}
 
-            <Card className="glass-card border-none shadow-lg">
+            <Card className="bg-card/50 border border-border/40 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <User className="h-5 w-5" />
@@ -296,7 +296,7 @@ function AgendarContent() {
               </CardContent>
             </Card>
 
-            <Card className="glass-card border-none shadow-lg">
+            <Card className="bg-card/50 border border-border/40 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Scissors className="h-5 w-5" />
@@ -319,7 +319,7 @@ function AgendarContent() {
               </CardContent>
             </Card>
 
-            <Card className="glass-card border-none shadow-lg overflow-hidden">
+            <Card className="bg-card/50 border border-border/40 shadow-sm overflow-hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
@@ -332,7 +332,7 @@ function AgendarContent() {
                     <button
                       type="button"
                       onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
-                      className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
+                      className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
@@ -347,7 +347,7 @@ function AgendarContent() {
                     <button
                       type="button"
                       onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
-                      className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
+                      className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </button>
@@ -383,7 +383,7 @@ function AgendarContent() {
                               disabled={isDisabled || !isCurrentMonth}
                               onClick={() => { setDataSelecionada(dateStr); setHoraSelecionada(""); }}
                               className={cn(
-                                "relative h-10 w-full rounded-full text-sm font-semibold transition-all duration-200",
+                                "relative min-h-[44px] h-10 w-full rounded-full text-sm font-semibold transition-all duration-200",
                                 !isCurrentMonth && "text-transparent pointer-events-none",
                                 isCurrentMonth && isDisabled && "text-muted-foreground/20 cursor-not-allowed",
                                 isCurrentMonth && !isDisabled && !isSelected && "text-foreground hover:bg-primary/8 hover:text-primary cursor-pointer",
@@ -415,7 +415,7 @@ function AgendarContent() {
               </CardContent>
             </Card>
 
-            <Card className="glass-card border-none shadow-lg">
+            <Card className="bg-card/50 border border-border/40 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Clock className="h-5 w-5" />
@@ -434,7 +434,7 @@ function AgendarContent() {
                         disabled={ocupado}
                         onClick={() => setHoraSelecionada(hora)}
                         className={cn(
-                          "rounded-xl font-bold transition-all duration-200",
+                          "min-h-[44px] min-w-[44px] rounded-xl font-bold transition-all duration-200",
                           ocupado 
                             ? "bg-red-100 text-red-600 border-red-200 hover:bg-red-100 cursor-not-allowed opacity-60" 
                             : horaSelecionada === hora 
@@ -460,7 +460,7 @@ function AgendarContent() {
               </CardContent>
             </Card>
 
-            <Card className="glass-card border-none shadow-lg">
+            <Card className="bg-card/50 border border-border/40 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Scissors className="h-5 w-5" />
@@ -540,7 +540,7 @@ function AgendarContent() {
             </Card>
 
             {servicosSelecionados.length > 0 && dataSelecionada && horaSelecionada && barbeiroSelecionado && (
-              <div className="glass-panel rounded-2xl p-5 space-y-3 border border-white/60 animate-scale-in shadow-lg">
+              <div className="bg-card border border-border/40 rounded-2xl p-5 space-y-3 shadow-sm animate-scale-in">
                 <p className="font-black text-sm uppercase tracking-wider text-primary flex items-center gap-2">
                   <Check className="h-4 w-4" />
                   Resumo do Agendamento

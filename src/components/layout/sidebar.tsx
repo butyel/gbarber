@@ -57,7 +57,7 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
       <Button
         variant="ghost"
         size="icon"
-        className="md:hidden fixed top-4 left-4 z-50 bg-[#1A2E21] text-[#C9A84C]"
+        className="md:hidden fixed top-4 left-4 z-50 bg-primary text-accent"
         onClick={() => setMobileOpen(true)}
       >
         <Menu className="h-6 w-6" />
@@ -65,7 +65,7 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-[#1A2E21] text-[#C9A84C] flex flex-col transition-all duration-500 ease-in-out border-r border-white/5 shadow-2xl",
+          "fixed left-0 top-0 z-40 h-screen bg-primary text-accent flex flex-col transition-all duration-500 ease-in-out border-r border-white/5 shadow-2xl",
           isCollapsed ? "w-20" : "w-72",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
@@ -124,7 +124,7 @@ export function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onTog
           })}
         </nav>
 
-        <div className="p-4 border-t border-white/10 relative z-10 bg-[#1A2E21]/50 backdrop-blur-md">
+        <div className="p-4 border-t border-white/10 relative z-10 bg-primary/50 backdrop-blur-md">
           <Button
             variant="ghost"
             className={cn(

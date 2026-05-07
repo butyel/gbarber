@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { SWRegistration } from "@/components/pwa/sw-registration";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "GBarber - Sistema de Gestão de Barbearia",
@@ -19,11 +16,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#7A3B2E",
+  themeColor: "#1A2E21",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 2,
 };
 
 export default function RootLayout({
@@ -38,7 +34,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body className={`${inter.className} h-full`}>
+      <body className="h-full font-sans">
         <Providers>
           <SWRegistration />
           {children}

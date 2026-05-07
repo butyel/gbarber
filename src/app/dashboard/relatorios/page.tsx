@@ -279,7 +279,7 @@ export default function RelatoriosPage() {
 
       <div className="p-6 space-y-6">
         {periodo === "custom" && (
-          <Card className="p-4 glass-card border-accent/20">
+          <Card className="p-4 bg-card shadow-sm border border-border/40">
             <div className="flex flex-col sm:flex-row items-end gap-4">
               <div className="grid gap-2">
                 <label className="text-xs font-medium uppercase tracking-wider text-accent/70">Data Início</label>

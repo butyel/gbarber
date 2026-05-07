@@ -168,7 +168,7 @@ export default function ComissoesPage() {
             loading={loading}
           />
         </div>
-        <Card className="glass-card border-none overflow-hidden animate-slide-up" style={{ animationDelay: '200ms' }}>
+        <Card className="bg-card shadow-sm border border-border/40 animate-slide-up" style={{ animationDelay: '200ms' }}>
           <CardHeader className="border-b border-white/10 bg-white/40 backdrop-blur-md p-6">
             <CardTitle className="text-xl font-black text-primary flex items-center gap-2">
               <Users className="h-5 w-5 text-accent" />

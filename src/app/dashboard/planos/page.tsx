@@ -192,14 +192,14 @@ export default function PlanosPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
             <Input 
               placeholder="Buscar por nome do plano..." 
-              className="pl-10 rounded-xl border-none glass-card focus-visible:ring-primary shadow-sm"
+              className="pl-10 rounded-xl border-none bg-background shadow-sm border border-border/40"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
 
-        <Card className="glass-card border-none overflow-hidden animate-slide-up" style={{ animationDelay: '150ms' }}>
+        <Card className="bg-card shadow-sm border border-border/40 animate-slide-up" style={{ animationDelay: '150ms' }}>
           <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md">
             <CardTitle className="text-lg font-bold flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-accent" />
@@ -278,7 +278,7 @@ export default function PlanosPage() {
                               variant="ghost" 
                               size="icon" 
                               onClick={(e) => { e.stopPropagation(); handleEdit(plano); }}
-                              className="hover:bg-accent/10 hover:text-accent transition-colors"
+                              className="min-w-[44px] min-h-[44px] hover:bg-accent/10 hover:text-accent transition-colors"
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -286,7 +286,7 @@ export default function PlanosPage() {
                               variant="ghost" 
                               size="icon" 
                               onClick={(e) => { e.stopPropagation(); handleDelete(plano.id); }}
-                              className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+                              className="min-w-[44px] min-h-[44px] hover:bg-destructive/10 hover:text-destructive transition-colors"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -326,7 +326,7 @@ export default function PlanosPage() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[500px] glass-panel border-accent/20">
+        <DialogContent className="sm:max-w-[500px] bg-card shadow-sm border border-border/40">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-2">
               {editingId ? <Pencil className="h-5 w-5 text-accent" /> : <Plus className="h-5 w-5 text-accent" />}

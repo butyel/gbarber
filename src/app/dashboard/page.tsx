@@ -168,11 +168,11 @@ export default function DashboardPage() {
       <Topbar
         action={
           <div className="flex gap-2">
-            <Button onClick={() => router.push("/dashboard/atendimentos")} size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Novo</span>
-            </Button>
-            <Button variant="outline" onClick={() => router.push("/dashboard/caixa")} size="sm" className="hidden sm:flex">
+<Button onClick={() => router.push("/dashboard/atendimentos")} size="sm" className="min-h-[44px]">
+  <Plus className="h-4 w-4 mr-1" />
+  <span className="hidden sm:inline">Novo</span>
+</Button>
+            <Button variant="outline" onClick={() => router.push("/dashboard/caixa")} size="sm" className="min-h-[44px] hidden sm:flex">
               <Wallet className="h-4 w-4 mr-2" />
               Caixa
             </Button>
@@ -233,7 +233,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {topBarbeiro && (
-            <Card className="glass-card border-none bg-gradient-to-br from-primary/5 to-transparent overflow-hidden group">
+            <Card className="bg-card shadow-sm border border-border/40 group">
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-muted-foreground">
                   <Award className="h-4 w-4 text-accent" />
@@ -248,7 +248,7 @@ export default function DashboardPage() {
           )}
 
           {topServico && (
-            <Card className="glass-card border-none bg-gradient-to-br from-accent/5 to-transparent overflow-hidden group">
+            <Card className="bg-card shadow-sm border border-border/40 group">
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-muted-foreground">
                   <Sparkles className="h-4 w-4 text-accent" />
@@ -263,7 +263,7 @@ export default function DashboardPage() {
           )}
 
           {aniversariantesSemana.length > 0 && (
-            <Card className="glass-card border-none bg-gradient-to-br from-destructive/5 to-transparent overflow-hidden group">
+            <Card className="bg-card shadow-sm border border-border/40 group">
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-muted-foreground">
                   <Cake className="h-4 w-4 text-destructive" />
@@ -285,7 +285,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
-          <Card className="glass-card border-none overflow-hidden group">
+          <Card className="bg-card shadow-sm border border-border/40 group">
             <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md">
               <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-accent" />
@@ -301,7 +301,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="glass-card border-none overflow-hidden group">
+          <Card className="bg-card shadow-sm border border-border/40 group">
             <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md">
               <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary" />
@@ -318,10 +318,10 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <Card className="glass-card border-none overflow-hidden animate-slide-up" style={{ animationDelay: '200ms' }}>
+        <Card className="bg-card shadow-sm border border-border/40 animate-slide-up" style={{ animationDelay: '200ms' }}>
           <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md flex flex-row items-center justify-between">
             <CardTitle className="text-lg font-bold">Últimos Atendimentos</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard/atendimentos")} className="text-xs font-bold uppercase tracking-wider text-accent hover:text-accent/80">
+            <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard/atendimentos")} className="min-h-[44px] text-xs font-bold uppercase tracking-wider text-accent hover:text-accent/80">
               Ver Todos
             </Button>
           </CardHeader>

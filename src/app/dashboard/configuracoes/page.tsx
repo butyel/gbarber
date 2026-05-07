@@ -180,22 +180,22 @@ export default function ConfiguracoesPage() {
       <Topbar />
 
       <div className="p-6 max-w-4xl mx-auto space-y-6">
-        <div className="flex border-b border-[#C9A84C]/30 overflow-x-auto gap-6 mb-6">
+        <div className="flex border-b border-accent/30 overflow-x-auto gap-6 mb-6">
           <button
             onClick={() => setActiveTab("perfil")}
-            className={`pb-3 px-2 font-medium whitespace-nowrap transition-colors ${activeTab === "perfil" ? "border-b-2 border-[#C9A84C] text-[#C9A84C]" : "text-muted-foreground hover:text-foreground"}`}
+            className={`pb-3 px-2 font-medium whitespace-nowrap transition-colors ${activeTab === "perfil" ? "border-b-2 border-accent text-accent" : "text-muted-foreground hover:text-foreground"}`}
           >
             Perfil da Conta
           </button>
           <button
             onClick={() => setActiveTab("servicos")}
-            className={`pb-3 px-2 font-medium whitespace-nowrap transition-colors ${activeTab === "servicos" ? "border-b-2 border-[#C9A84C] text-[#C9A84C]" : "text-muted-foreground hover:text-foreground"}`}
+            className={`pb-3 px-2 font-medium whitespace-nowrap transition-colors ${activeTab === "servicos" ? "border-b-2 border-accent text-accent" : "text-muted-foreground hover:text-foreground"}`}
           >
             Planos e Agendamento
           </button>
           <button
             onClick={() => setActiveTab("sistema")}
-            className={`pb-3 px-2 font-medium whitespace-nowrap transition-colors ${activeTab === "sistema" ? "border-b-2 border-[#C9A84C] text-[#C9A84C]" : "text-muted-foreground hover:text-foreground"}`}
+            className={`pb-3 px-2 font-medium whitespace-nowrap transition-colors ${activeTab === "sistema" ? "border-b-2 border-accent text-accent" : "text-muted-foreground hover:text-foreground"}`}
           >
             Acesso e Sistema
           </button>
@@ -214,16 +214,16 @@ export default function ConfiguracoesPage() {
           <CardContent className="space-y-6">
             <div className="flex flex-col items-center gap-4">
               <div className="relative">
-                <div className="w-32 h-32 rounded-full overflow-hidden bg-[#2D4A35] flex items-center justify-center border-2 border-[#C9A84C]/30">
+                <div className="w-32 h-32 rounded-full overflow-hidden bg-primary flex items-center justify-center border-2 border-accent/30">
                   {fotoPerfil ? (
                     <img src={fotoPerfil} alt="Foto de perfil" className="w-full h-full object-cover" />
                   ) : (
-                    <User className="w-16 h-16 text-[#C9A84C]/50" />
+                    <User className="w-16 h-16 text-accent/50" />
                   )}
                 </div>
                 {uploading && (
                   <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 text-[#C9A84C] animate-spin" />
+                    <Loader2 className="h-8 w-8 text-accent animate-spin" />
                   </div>
                 )}
               </div>
@@ -233,7 +233,7 @@ export default function ConfiguracoesPage() {
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="border-[#C9A84C]/50 text-[#C9A84C] hover:bg-[#C9A84C]/10"
+                  className="border-accent/50 text-accent hover:bg-accent/10"
                 >
                   <Camera className="h-4 w-4 mr-2" />
                   {fotoPerfil ? "Alterar" : "Adicionar"}
@@ -374,7 +374,7 @@ export default function ConfiguracoesPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-accent/20 glass-card">
+        <Card className="border-accent/20 bg-card shadow-sm border border-border/40">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-accent">
               <CreditCard className="h-5 w-5" />

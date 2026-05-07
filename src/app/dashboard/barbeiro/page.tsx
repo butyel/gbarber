@@ -194,7 +194,7 @@ function BarbearDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <Card className="glass-card border-none overflow-hidden animate-slide-up" style={{ animationDelay: '100ms' }}>
+            <Card className="bg-card shadow-sm border border-border/40 animate-slide-up" style={{ animationDelay: '100ms' }}>
               <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md flex flex-row items-center justify-between">
                 <CardTitle className="text-lg font-bold flex items-center gap-2">
                   <Clock className="h-5 w-5 text-accent" />
@@ -276,7 +276,7 @@ function BarbearDashboard() {
           </div>
 
           <div className="space-y-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
-            <Card className="glass-card border-none overflow-hidden group">
+            <Card className="bg-card shadow-sm border border-border/40 group">
               <CardHeader className="border-b border-white/10 bg-white/50 backdrop-blur-md">
                 <CardTitle className="text-sm font-black uppercase tracking-[0.2em] flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-accent" />
