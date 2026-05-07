@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { collection, query, where, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
 import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, addMonths, subMonths, isSameMonth, isSameDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
@@ -459,22 +460,35 @@ export default function AgendaPage() {
           </DialogHeader>
           <div className="space-y-4 overflow-y-auto flex-1 pr-2">
             <div className="space-y-2">
-              <Label>Data</Label>
-              <div className="bg-muted/30 rounded-xl p-3 border">
-                <div className="flex items-center justify-between mb-2">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}>
+              <Label className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">Data</Label>
+              <div className="bg-white/50 rounded-2xl p-3.5 border border-white/60 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
+                    className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-primary/10 text-muted-foreground/60 hover:text-primary transition-all text-xs"
+                  >
                     <ChevronLeft className="h-3.5 w-3.5" />
-                  </Button>
-                  <span className="font-bold text-xs capitalize">
-                    {format(calendarMonth, "MMMM yyyy")}
-                  </span>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}>
+                  </button>
+                  <div className="text-center">
+                    <span className="text-xs font-bold capitalize text-foreground">
+                      {format(calendarMonth, "MMMM", { locale: ptBR })}
+                    </span>
+                    <span className="text-xs font-light text-muted-foreground ml-1">
+                      {format(calendarMonth, "yyyy")}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
+                    className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-primary/10 text-muted-foreground/60 hover:text-primary transition-all text-xs"
+                  >
                     <ChevronRight className="h-3.5 w-3.5" />
-                  </Button>
+                  </button>
                 </div>
-                <div className="grid grid-cols-7 gap-0.5 text-center mb-1">
+                <div className="grid grid-cols-7 gap-0.5 text-center mb-1.5">
                   {["D", "S", "T", "Q", "Q", "S", "S"].map(d => (
-                    <div key={d} className="text-[9px] font-bold uppercase text-muted-foreground/50 py-0.5">{d}</div>
+                    <div key={d} className="text-[9px] font-bold text-muted-foreground/30 tracking-wider">{d}</div>
                   ))}
                 </div>
                 <div className="grid grid-cols-7 gap-0.5">
@@ -499,14 +513,17 @@ export default function AgendaPage() {
                             type="button"
                             onClick={() => setFormData({ ...formData, data: dateStr })}
                             className={cn(
-                              "h-7 w-full rounded text-xs font-medium transition-all",
-                              !isCurrentMonth && "text-muted-foreground/20",
-                              isCurrentMonth && !isSelected && "hover:bg-primary/10 hover:text-primary",
-                              isSelected && "bg-primary text-primary-foreground shadow-sm",
-                              isToday && !isSelected && "ring-1 ring-primary/30 ring-inset"
+                              "relative h-8 w-full rounded-full text-xs font-semibold transition-all duration-200",
+                              !isCurrentMonth && "text-transparent pointer-events-none",
+                              isCurrentMonth && !isSelected && "text-foreground/70 hover:bg-primary/10 hover:text-primary",
+                              isCurrentMonth && isSelected && "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105 font-bold",
+                              isCurrentMonth && isToday && !isSelected && "text-primary font-bold"
                             )}
                           >
                             {format(currentDay, "d")}
+                            {isCurrentMonth && isToday && !isSelected && (
+                              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                            )}
                           </button>
                         );
                         day = addDays(day, 1);
@@ -517,9 +534,12 @@ export default function AgendaPage() {
                 </div>
               </div>
               {formData.data && (
-                <p className="text-xs font-medium text-primary text-center">
-                  {format(new Date(formData.data + "T12:00:00"), "EEEE, dd 'de' MMMM")}
-                </p>
+                <div className="flex items-center justify-center gap-1.5 pt-0.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <span className="text-[11px] font-semibold text-primary">
+                    {format(new Date(formData.data + "T12:00:00"), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                  </span>
+                </div>
               )}
             </div>
             <div className="space-y-2">

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { collection, query, orderBy, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfDay, addDays, addMonths, subMonths, isSameMonth, isSameDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
@@ -14,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, formatCurrency, formatDate, formatTime } from "@/lib/utils";
-import { Plus, Search, Trash2, Loader2, RotateCcw, Eye, Pencil, Check, List, Scissors } from "lucide-react";
+import { Plus, Search, Trash2, Loader2, RotateCcw, Eye, Pencil, Check, List, Scissors, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Atendimento, Barbeiro, Servico, Produto } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -46,6 +48,8 @@ export default function AtendimentosPage() {
     data: new Date().toISOString().split("T")[0],
     hora: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
   });
+
+  const [calendarMonth, setCalendarMonth] = useState(startOfMonth(new Date()));
 
   useEffect(() => {
     if (!user || !db) return;
@@ -478,14 +482,88 @@ export default function AtendimentosPage() {
                 )}
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Data</Label>
-                  <Input 
-                    type="date" 
-                    value={formData.data}
-                    onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                  />
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">Data</Label>
+                <div className="bg-white/40 rounded-xl p-2.5 border border-white/60 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
+                      className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-primary/10 text-muted-foreground/60 hover:text-primary transition-all"
+                    >
+                      <ChevronLeft className="h-3 w-3" />
+                    </button>
+                    <div className="text-center">
+                      <span className="text-[11px] font-bold capitalize text-foreground">
+                        {format(calendarMonth, "MMMM", { locale: ptBR })}
+                      </span>
+                      <span className="text-[11px] font-light text-muted-foreground ml-0.5">
+                        {format(calendarMonth, "yyyy")}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
+                      className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-primary/10 text-muted-foreground/60 hover:text-primary transition-all"
+                    >
+                      <ChevronRight className="h-3 w-3" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-7 gap-0 text-center mb-1">
+                    {["D", "S", "T", "Q", "Q", "S", "S"].map(d => (
+                      <div key={d} className="text-[8px] font-bold text-muted-foreground/30 tracking-wider py-0.5">{d}</div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-0">
+                    {(() => {
+                      const monthStart = startOfMonth(calendarMonth);
+                      const monthEnd = endOfMonth(calendarMonth);
+                      const startDate = startOfWeek(monthStart);
+                      const endDate = endOfWeek(monthEnd);
+                      const rows: JSX.Element[] = [];
+                      let day = startDate;
+                      while (day <= endDate) {
+                        for (let i = 0; i < 7; i++) {
+                          const currentDay = day;
+                          const dateStr = format(currentDay, "yyyy-MM-dd");
+                          const isSelected = formData.data === dateStr;
+                          const isCurrentMonth = isSameMonth(currentDay, calendarMonth);
+                          const isToday = isSameDay(currentDay, new Date());
+                          rows.push(
+                            <button
+                              key={dateStr}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, data: dateStr })}
+                              className={cn(
+                                "relative h-7 w-full rounded-full text-[11px] font-semibold transition-all duration-200",
+                                !isCurrentMonth && "text-transparent pointer-events-none",
+                                isCurrentMonth && !isSelected && "text-foreground/60 hover:bg-primary/10 hover:text-primary",
+                                isCurrentMonth && isSelected && "bg-primary text-primary-foreground shadow-sm font-bold",
+                                isCurrentMonth && isToday && !isSelected && "text-primary font-bold"
+                              )}
+                            >
+                              {format(currentDay, "d")}
+                              {isCurrentMonth && isToday && !isSelected && (
+                                <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-0.5 h-0.5 rounded-full bg-primary" />
+                              )}
+                            </button>
+                          );
+                          day = addDays(day, 1);
+                        }
+                      }
+                      return rows;
+                    })()}
+                  </div>
                 </div>
+                {formData.data && (
+                  <div className="flex items-center justify-center gap-1 pt-0.5">
+                    <div className="w-1 h-1 rounded-full bg-primary" />
+                    <span className="text-[10px] font-semibold text-primary">
+                      {format(new Date(formData.data + "T12:00:00"), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                    </span>
+                  </div>
+                )}
+              </div>
                 <div className="space-y-2">
                   <Label>Hora</Label>
                   <Input 

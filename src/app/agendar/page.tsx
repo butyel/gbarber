@@ -320,31 +320,44 @@ function AgendarContent() {
             </Card>
 
             <Card className="glass-card border-none shadow-lg overflow-hidden">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
                   Data
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="px-4 pb-2 pt-2">
-                  <div className="flex items-center justify-between mb-3">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}>
+                <div className="pt-1 pb-3 px-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
+                      className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
+                    >
                       <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="font-bold text-sm capitalize">
-                      {format(calendarMonth, "MMMM yyyy", { locale: ptBR })}
-                    </span>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}>
+                    </button>
+                    <div className="text-center">
+                      <span className="text-base font-bold capitalize tracking-tight text-foreground">
+                        {format(calendarMonth, "MMMM", { locale: ptBR })}
+                      </span>
+                      <span className="text-base font-light text-muted-foreground ml-1.5">
+                        {format(calendarMonth, "yyyy")}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
+                      className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
+                    >
                       <ChevronRight className="h-4 w-4" />
-                    </Button>
+                    </button>
                   </div>
-                  <div className="grid grid-cols-7 gap-0.5 text-center mb-1">
-                    {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map(d => (
-                      <div key={d} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 py-1">{d}</div>
+                  <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                    {["D", "S", "T", "Q", "Q", "S", "S"].map(d => (
+                      <div key={d} className="text-[11px] font-semibold text-muted-foreground/40 tracking-wider py-1">{d}</div>
                     ))}
                   </div>
-                  <div className="grid grid-cols-7 gap-0.5">
+                  <div className="grid grid-cols-7 gap-1">
                     {(() => {
                       const monthStart = startOfMonth(calendarMonth);
                       const monthEnd = endOfMonth(calendarMonth);
@@ -353,7 +366,9 @@ function AgendarContent() {
                       const today = startOfDay(new Date());
                       const rows: JSX.Element[] = [];
                       let day = startDate;
+                      let weekCount = 0;
                       while (day <= endDate) {
+                        weekCount++;
                         for (let i = 0; i < 7; i++) {
                           const currentDay = day;
                           const dateStr = format(currentDay, "yyyy-MM-dd");
@@ -368,15 +383,18 @@ function AgendarContent() {
                               disabled={isDisabled || !isCurrentMonth}
                               onClick={() => { setDataSelecionada(dateStr); setHoraSelecionada(""); }}
                               className={cn(
-                                "h-9 w-full rounded-lg text-sm font-medium transition-all",
-                                !isCurrentMonth && "text-muted-foreground/20",
-                                isCurrentMonth && isDisabled && "text-muted-foreground/30 line-through cursor-not-allowed",
-                                isCurrentMonth && !isDisabled && !isSelected && "hover:bg-primary/10 hover:text-primary cursor-pointer",
-                                isCurrentMonth && isSelected && "bg-primary text-primary-foreground shadow-lg shadow-primary/30",
-                                isCurrentMonth && isToday && !isSelected && "ring-2 ring-primary/30 ring-inset"
+                                "relative h-10 w-full rounded-full text-sm font-semibold transition-all duration-200",
+                                !isCurrentMonth && "text-transparent pointer-events-none",
+                                isCurrentMonth && isDisabled && "text-muted-foreground/20 cursor-not-allowed",
+                                isCurrentMonth && !isDisabled && !isSelected && "text-foreground hover:bg-primary/8 hover:text-primary cursor-pointer",
+                                isCurrentMonth && isSelected && "bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105 font-bold",
+                                isCurrentMonth && isToday && !isSelected && "text-primary font-bold"
                               )}
                             >
                               {format(currentDay, "d")}
+                              {isCurrentMonth && isToday && !isSelected && (
+                                <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                              )}
                             </button>
                           );
                           day = addDays(day, 1);
@@ -387,10 +405,11 @@ function AgendarContent() {
                   </div>
                 </div>
                 {dataSelecionada && (
-                  <div className="border-t bg-muted/20 px-4 py-3">
-                    <p className="text-sm font-medium text-center text-primary">
+                  <div className="border-t border-white/20 px-5 py-3 flex items-center justify-center gap-2 bg-white/30">
+                    <div className="w-2 h-2 rounded-full bg-primary" />
+                    <span className="text-sm font-semibold text-primary">
                       {format(new Date(dataSelecionada + "T12:00:00"), "EEEE, dd 'de' MMMM", { locale: ptBR })}
-                    </p>
+                    </span>
                   </div>
                 )}
               </CardContent>
