@@ -417,13 +417,14 @@ export default function AtendimentosPage() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] sm:max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>
               {isEditMode ? "Editar Atendimento" : selectedAtendimento ? "Detalhes do Atendimento" : "Novo Atendimento"}
             </DialogTitle>
           </DialogHeader>
           
+          <div className="overflow-y-auto pr-1 -mr-1 space-y-4 max-h-[calc(85vh-8rem)] sm:max-h-[calc(80vh-8rem)]">
           {selectedAtendimento && !isEditMode ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -639,7 +640,8 @@ export default function AtendimentosPage() {
               </div>
             </div>
           )}
-          
+          </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => {
               setIsModalOpen(false);
