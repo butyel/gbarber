@@ -454,12 +454,12 @@ export default function AgendaPage() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] sm:max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>Novo Agendamento</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 overflow-y-auto flex-1 pr-2">
-            <div className="space-y-2">
+          <div className="space-y-3 overflow-y-auto pr-1 -mr-1 max-h-[calc(85vh-8rem)] sm:max-h-[calc(80vh-8rem)]">
+            <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">Data</Label>
               <div className="bg-white/50 rounded-2xl p-3.5 border border-white/60 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
