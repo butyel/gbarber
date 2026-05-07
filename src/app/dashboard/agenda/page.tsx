@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { collection, query, where, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
-import { format, addDays, startOfWeek, endOfWeek } from "date-fns";
+import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, addMonths, subMonths, isSameMonth, isSameDay } from "date-fns";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Topbar } from "@/components/layout/topbar";
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Plus, Clock, User, Scissors, X, Check, Phone, Calendar, CalendarDays, List } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, User, Scissors, X, Check, Phone, CalendarDays, List } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Atendimento, Barbeiro, Servico, Cliente } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +37,7 @@ export default function AgendaPage() {
   const [selectedSlot, setSelectedSlot] = useState<{ date: string; hour: number } | null>(null);
   const [selectedBarbeiro, setSelectedBarbeiro] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"day" | "week">("week");
+  const [calendarMonth, setCalendarMonth] = useState(startOfMonth(new Date()));
   
   const [formData, setFormData] = useState({
     cliente: "",
@@ -457,28 +458,82 @@ export default function AgendaPage() {
             <DialogTitle>Novo Agendamento</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 overflow-y-auto flex-1 pr-2">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Data</Label>
-                <Input 
-                  type="date" 
-                  value={formData.data}
-                  onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                />
+            <div className="space-y-2">
+              <Label>Data</Label>
+              <div className="bg-muted/30 rounded-xl p-3 border">
+                <div className="flex items-center justify-between mb-2">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}>
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                  <span className="font-bold text-xs capitalize">
+                    {format(calendarMonth, "MMMM yyyy")}
+                  </span>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-7 gap-0.5 text-center mb-1">
+                  {["D", "S", "T", "Q", "Q", "S", "S"].map(d => (
+                    <div key={d} className="text-[9px] font-bold uppercase text-muted-foreground/50 py-0.5">{d}</div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7 gap-0.5">
+                  {(() => {
+                    const monthStart = startOfMonth(calendarMonth);
+                    const monthEnd = endOfMonth(calendarMonth);
+                    const startDate = startOfWeek(monthStart);
+                    const endDate = endOfWeek(monthEnd);
+                    const today = startOfDay(new Date());
+                    const rows: JSX.Element[] = [];
+                    let day = startDate;
+                    while (day <= endDate) {
+                      for (let i = 0; i < 7; i++) {
+                        const currentDay = day;
+                        const dateStr = format(currentDay, "yyyy-MM-dd");
+                        const isSelected = formData.data === dateStr;
+                        const isCurrentMonth = isSameMonth(currentDay, calendarMonth);
+                        const isToday = isSameDay(currentDay, new Date());
+                        rows.push(
+                          <button
+                            key={dateStr}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, data: dateStr })}
+                            className={cn(
+                              "h-7 w-full rounded text-xs font-medium transition-all",
+                              !isCurrentMonth && "text-muted-foreground/20",
+                              isCurrentMonth && !isSelected && "hover:bg-primary/10 hover:text-primary",
+                              isSelected && "bg-primary text-primary-foreground shadow-sm",
+                              isToday && !isSelected && "ring-1 ring-primary/30 ring-inset"
+                            )}
+                          >
+                            {format(currentDay, "d")}
+                          </button>
+                        );
+                        day = addDays(day, 1);
+                      }
+                    }
+                    return rows;
+                  })()}
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Horário</Label>
-                <Select value={formData.hora} onValueChange={(v) => setFormData({ ...formData, hora: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {HOURS.map(h => (
-                      <SelectItem key={h} value={getHourLabel(h)}>
-                        {getHourLabel(h)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {formData.data && (
+                <p className="text-xs font-medium text-primary text-center">
+                  {format(new Date(formData.data + "T12:00:00"), "EEEE, dd 'de' MMMM")}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Horário</Label>
+              <Select value={formData.hora} onValueChange={(v) => setFormData({ ...formData, hora: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {HOURS.map(h => (
+                    <SelectItem key={h} value={getHourLabel(h)}>
+                      {getHourLabel(h)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Status</Label>

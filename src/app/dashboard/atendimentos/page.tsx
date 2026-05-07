@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, formatCurrency, formatDate, formatTime } from "@/lib/utils";
-import { Plus, Search, Trash2, Loader2, RotateCcw, Eye, Pencil, Check, List } from "lucide-react";
+import { Plus, Search, Trash2, Loader2, RotateCcw, Eye, Pencil, Check, List, Scissors } from "lucide-react";
 import type { Atendimento, Barbeiro, Servico, Produto } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -34,12 +34,12 @@ export default function AtendimentosPage() {
   const [selectedAtendimento, setSelectedAtendimento] = useState<Atendimento | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
-  const [lastAtendimento, setLastAtendimento] = useState<{servicoId: string; barbeiroId: string; valor: number} | null>(null);
+  const [lastAtendimento, setLastAtendimento] = useState<{servicoIds: string[]; barbeiroId: string; valor: number} | null>(null);
   
   const [formData, setFormData] = useState({
     cliente: "",
     barbeiroId: "",
-    servicoId: "",
+    servicoIds: [] as string[],
     valor: 0,
     produtoId: "",
     produtoQuantidade: 1,
@@ -76,7 +76,7 @@ export default function AtendimentosPage() {
       if (appointmentsData.length > 0) {
         const last = appointmentsData[0];
         setLastAtendimento({
-          servicoId: last.servicoId,
+          servicoIds: last.servicoIds || (last.servicoId ? [last.servicoId] : []),
           barbeiroId: last.barbeiroId,
           valor: last.valor,
         });
@@ -111,7 +111,7 @@ export default function AtendimentosPage() {
   };
 
   const handleSubmit = async () => {
-    if (!user || !formData.cliente || !formData.barbeiroId || !formData.servicoId) {
+    if (!user || !formData.cliente || !formData.barbeiroId || formData.servicoIds.length === 0) {
       toast({ variant: "destructive", title: "Preencha todos os campos" });
       return;
     }
@@ -125,19 +125,19 @@ export default function AtendimentosPage() {
     setSubmitting(true);
     try {
       const barbeiro = barbeiros.find(b => b.id === formData.barbeiroId);
-      const servico = servicos.find(s => s.id === formData.servicoId);
+      const servicosSelecionados = servicos.filter(s => formData.servicoIds.includes(s.id));
       
       let comissao = 0;
-      if (barbeiro && servico) {
-        comissao = (servico.preco * barbeiro.comissaoServico) / 100;
+      if (barbeiro) {
+        comissao = servicosSelecionados.reduce((sum, s) => sum + (s.preco * barbeiro.comissaoServico) / 100, 0);
       }
 
       const atendimento: any = {
         cliente: formData.cliente,
         barbeiroId: formData.barbeiroId,
         barbeiroNome: barbeiro?.nome || "",
-        servicoId: formData.servicoId,
-        servicoNome: servico?.nome || "",
+        servicoIds: formData.servicoIds,
+        servicoNomes: servicosSelecionados.map(s => s.nome).join(", "),
         valor: formData.valor,
         comissao,
         data: formData.data,
@@ -169,7 +169,7 @@ export default function AtendimentosPage() {
       setFormData({ 
         cliente: "", 
         barbeiroId: "", 
-        servicoId: "", 
+        servicoIds: [], 
         valor: 0, 
         produtoId: "", 
         produtoQuantidade: 1,
@@ -222,7 +222,7 @@ export default function AtendimentosPage() {
     setFormData({
       cliente: appointment.cliente,
       barbeiroId: appointment.barbeiroId,
-      servicoId: appointment.servicoId,
+      servicoIds: appointment.servicoIds || (appointment.servicoId ? [appointment.servicoId] : []),
       valor: appointment.valor,
       produtoId: appointment.produtoVendido?.produtoId || "",
       produtoQuantidade: appointment.produtoVendido?.quantidade || 1,
@@ -235,7 +235,7 @@ export default function AtendimentosPage() {
   const filteredAppointments = appointments.filter(a => 
     a.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
     a.barbeiroNome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    a.servicoNome.toLowerCase().includes(searchTerm.toLowerCase())
+    (a.servicoNomes || a.servicoNome || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -249,7 +249,7 @@ export default function AtendimentosPage() {
     if (lastAtendimento) {
       setFormData({
         ...formData,
-        servicoId: lastAtendimento.servicoId,
+        servicoIds: lastAtendimento.servicoIds,
         barbeiroId: lastAtendimento.barbeiroId,
         valor: lastAtendimento.valor,
       });
@@ -367,7 +367,7 @@ export default function AtendimentosPage() {
                       </TableCell>
                       <TableCell>
                         <span className="px-3 py-1 rounded-full bg-accent/10 text-accent text-[10px] font-black uppercase tracking-wider">
-                          {appointment.servicoNome}
+                          {appointment.servicoNomes || appointment.servicoNome}
                         </span>
                       </TableCell>
                       <TableCell className="font-black text-primary">
@@ -441,8 +441,8 @@ export default function AtendimentosPage() {
                 <p className="font-medium">{selectedAtendimento.barbeiroNome}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Serviço</p>
-                <p className="font-medium">{selectedAtendimento.servicoNome}</p>
+                <p className="text-sm text-muted-foreground">Serviço(s)</p>
+                <p className="font-medium">{selectedAtendimento.servicoNomes || selectedAtendimento.servicoNome}</p>
               </div>
               {selectedAtendimento.produtoVendido && (
                 <div>
@@ -505,16 +505,42 @@ export default function AtendimentosPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Serviço</Label>
-                <Select value={formData.servicoId} onValueChange={(v) => {
-                  const servico = servicos.find(s => s.id === v);
-                  setFormData({ ...formData, servicoId: v, valor: servico?.preco || 0 });
-                }}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    {servicos.map(s => <SelectItem key={s.id} value={s.id}>{s.nome} - {formatCurrency(s.preco)}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Label>Serviço(s) *</Label>
+                <div className="border rounded-lg divide-y max-h-[180px] overflow-y-auto bg-muted/10">
+                  {servicos.map(s => {
+                    const isSelected = formData.servicoIds.includes(s.id);
+                    return (
+                      <label key={s.id} className={cn(
+                        "flex items-center gap-3 p-2.5 cursor-pointer transition-colors text-sm",
+                        isSelected ? "bg-primary/10" : "hover:bg-muted/30"
+                      )}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              const novosIds = [...formData.servicoIds, s.id];
+                              const total = servicos.filter(ss => novosIds.includes(ss.id)).reduce((sum, ss) => sum + ss.preco, 0);
+                              setFormData({ ...formData, servicoIds: novosIds, valor: total });
+                            } else {
+                              const novosIds = formData.servicoIds.filter(id => id !== s.id);
+                              const total = servicos.filter(ss => novosIds.includes(ss.id)).reduce((sum, ss) => sum + ss.preco, 0);
+                              setFormData({ ...formData, servicoIds: novosIds, valor: total });
+                            }
+                          }}
+                          className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                        <span className="flex-1 font-medium">{s.nome}</span>
+                        <span className="text-sm font-semibold text-primary">{formatCurrency(s.preco)}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {formData.servicoIds.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {formData.servicoIds.length} serviço(s) selecionado(s) — Total: {formatCurrency(formData.valor)}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Valor</Label>
@@ -544,7 +570,7 @@ export default function AtendimentosPage() {
               setFormData({ 
                 cliente: "", 
                 barbeiroId: "", 
-                servicoId: "", 
+                servicoIds: [], 
                 valor: 0, 
                 produtoId: "", 
                 produtoQuantidade: 1,
